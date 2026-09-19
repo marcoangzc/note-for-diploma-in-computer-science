@@ -1,1 +1,0 @@
-# note-for-diploma-in-computer-science
