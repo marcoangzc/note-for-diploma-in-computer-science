@@ -1,0 +1,69 @@
+name: Build branch preview
+
+on:
+  push:
+    branches-ignore:
+      - gh-pages
+
+permissions:
+  contents: write
+
+concurrency:
+  group: branch-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"
+          bundler-cache: true
+
+      - name: Calculate deployment path
+        id: preview
+        shell: bash
+        run: |
+          branch="${GITHUB_REF_NAME}"
+          repository="${GITHUB_REPOSITORY#*/}"
+
+          slug=$(echo "$branch" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's#[^a-z0-9._-]#-#g' \
+            | sed 's#--*#-#g')
+
+          if [ "$branch" = "main" ]; then
+            deploy_dir=""
+            baseurl="/$repository"
+          else
+            deploy_dir="previews/$slug"
+            baseurl="/$repository/$deploy_dir"
+          fi
+
+          echo "deploy_dir=$deploy_dir" >> "$GITHUB_OUTPUT"
+          echo "baseurl=$baseurl" >> "$GITHUB_OUTPUT"
+
+      - name: Build Jekyll
+        run: |
+          bundle exec jekyll build \
+            --destination ./_site \
+            --baseurl "${{ steps.preview.outputs.baseurl }}"
+        env:
+          JEKYLL_ENV: production
+          PAGES_REPO_NWO: ${{ github.repository }}
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./_site
+          destination_dir: ${{ steps.preview.outputs.deploy_dir }}
+          keep_files: true
+          enable_jekyll: false
