@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AMIT3353 — note v1</title>
+<title>AMIT3353 — 全科笔记（Mobile Application Development）</title>
 <style>
 :root{
   box-sizing:border-box;
@@ -126,6 +126,11 @@ section.chapter:first-of-type{border-top:none;margin-top:0;padding-top:0}
 <a href="#chapter-1">Ch1 简介</a>
 <a href="#chapter-2">Ch2 UI</a>
 <a href="#chapter-3">Ch3 Models</a>
+<a href="#chapter-4-1">Ch4.1 Saving Data</a>
+<a href="#chapter-4-2">Ch4.2 Network</a>
+<a href="#chapter-5">Ch5 Location</a>
+<a href="#chapter-6">Ch6 Camera/Sensors</a>
+<a href="#chapter-7">Ch7 Packaging</a>
 </nav>
 <div class="wrap">
 <section class="chapter" id="chapter-1">
@@ -2230,6 +2235,1997 @@ override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
 <footer>
 <p>这一章最可能的考点，按机率排：① Explicit vs Implicit intent 判断（几乎每年都考，你的考卷 Q2c 就是）　② Activity lifecycle 六个 callback 该做什么　③ Instance state 保存/还原的机制　④ Back stack 的 LIFO 行为　⑤ Intent 携带的五个栏位。</p>
 </footer>
+</section>
+
+<section class="chapter" id="chapter-4-1">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 4.1 — Saving Data</h1>
+  <p class="lede">Slide 把 ViewModel「转屏不会丢资料」这件事画了三组几乎一样的对照图（传统 vs ViewModel），但没有把「为什么」讲透；Internal/External Storage 那张比较表则是<strong>你的考卷 Q3(b) 原题</strong>，6+4 分。这份笔记把这两处讲透，其余五个 Question 系列的答案也全部补上。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c41-s1">三种储存方式总览</a></li>
+<li><a href="#c41-s2">SharedPreferences ＆ DataStore</a></li>
+<li><a href="#c41-s3">Saving Files：Internal vs External</a> <span class="tag">考卷 Q3b</span></li>
+<li><a href="#c41-s4">SQLite ＆ Room</a></li>
+<li><a href="#c41-s5">ViewModel、Repository、LiveData、Coroutine</a> <span class="tag">高频</span></li>
+<li><a href="#c41-s6">NoSQL — Firebase</a></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>Q3(b)(i) 直接考「Differentiate THREE differences between internal and external storage in table format」（6 marks），Q3(b)(ii) 接着问「provide ONE local storage method for both internal and external storage, with a content example from MyGOV」（4 marks）。第 3 节结尾有满分答法。</p>
+</div>
+
+<h4>前置知识</h4>
+<p>这一章会用到 <strong>Activity lifecycle</strong>（Ch3）和 <strong>configuration change 会销毁重建 activity</strong> 这两个概念——ViewModel 存在的意义正是要解决这个问题，如果这两个词还不熟，建议先回 Ch3 扫一眼。</p>
+
+<h2 id="c41-s1">1. 三种储存方式总览</h2>
+
+<div class="tw">
+<table>
+<tr><th></th><th>Shared Preferences</th><th>Data Files</th><th>SQLite</th></tr>
+<tr><td>存什么</td><td><strong>key-value pair</strong> 的基本型别</td><td>档案：文字、声音、图片……</td><td><strong>重复且结构化</strong>的资料</td></tr>
+<tr><td>公/私</td><td>Private</td><td>Private 或 Public</td><td>Private</td></tr>
+</table>
+</div>
+
+<h2 id="c41-s2">2. SharedPreferences ＆ DataStore</h2>
+
+<ul>
+<li>存<strong>私有的 primitive 资料</strong>：<strong>boolean, float, int, long, String</strong></li>
+<li>资料<strong>跨 session 保存</strong>，app 被 kill 也还在</li>
+</ul>
+
+<div class="tw">
+<table>
+<tr><th></th><th><code>getSharedPreferences()</code></th><th><code>getPreferences()</code></th></tr>
+<tr><td>档案数</td><td><strong>多个</strong></td><td><strong>单一</strong></td></tr>
+<tr><td>存取层级</td><td><strong>Context</strong>（整个 app／多个 Activity 共用）</td><td><strong>Activity</strong>（只属该 Activity）</td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="getSharedPreferences 与 getPreferences 的存取范围对比">
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">getSharedPreferences — Context 层级</text>
+<rect x="8" y="26" width="300" height="140" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="20" y="44" font-size="10.5" fill="var(--d-muted)">App / Context</text>
+<rect x="20" y="52" width="120" height="30" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="30" y="71" font-size="11">Activity 1</text>
+<rect x="160" y="52" width="120" height="30" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="170" y="71" font-size="11">Activity 2</text>
+<rect x="60" y="112" width="90" height="30" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="72" y="131" font-size="10.5">Shared Pref 1</text>
+<rect x="160" y="112" width="90" height="30" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="172" y="131" font-size="10.5">Shared Pref 2</text>
+<line x1="80" y1="82" x2="80" y2="110" stroke="var(--d-stroke)" stroke-width="1.3"/>
+<line x1="220" y1="82" x2="220" y2="110" stroke="var(--d-stroke)" stroke-width="1.3"/>
+<line x1="80" y1="82" x2="205" y2="82" stroke="var(--d-stroke)" stroke-width="1.3"/>
+<text x="20" y="100" font-size="9.5" fill="var(--d-muted)">两个 activity 都能开、能共用同一份档案</text>
+
+<text x="384" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">getPreferences — Activity 层级</text>
+<rect x="384" y="26" width="300" height="140" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<rect x="396" y="52" width="120" height="30" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="406" y="71" font-size="11">Activity 1</text>
+<rect x="536" y="52" width="120" height="30" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="546" y="71" font-size="11">Activity 2</text>
+<rect x="396" y="112" width="90" height="30" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="406" y="131" font-size="10.5">Preference 1</text>
+<rect x="546" y="112" width="90" height="30" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="556" y="131" font-size="10.5">Preference 2</text>
+<line x1="456" y1="82" x2="456" y2="110" stroke="var(--d-stroke)" stroke-width="1.3"/>
+<line x1="596" y1="82" x2="596" y2="110" stroke="var(--d-stroke)" stroke-width="1.3"/>
+<text x="396" y="100" font-size="9.5" fill="var(--d-muted)">各自绑死一份，互相看不到</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>左边一份 Shared Preferences 档案可以被<b>同一个 app 里的多个 Activity 打开</b>；右边每个 Activity 用 <code>getPreferences()</code> 拿到的是<b>只属于它自己</b>的一份，即使在同一个 app 内，Activity 1 也看不到 Activity 2 的 Preference。<b>两者都不能被别的 app 存取</b>——这条 sandbox 规则没有例外。</figcaption>
+</figure>
+
+<p><strong>Jetpack Compose 用 DataStore 取代 SharedPreferences</strong>：<code>context.dataStore</code>（Context 的 extension property）、<code>DataStore&lt;Preferences&gt;</code>（key-value 存放，概念类似 SharedPreferences）、<code>.edit {}</code> 非同步写入、<code>.map {}</code> 以 <strong>Flow</strong> 非同步读取。</p>
+
+<div class="box ok">
+<span class="lab">✅ Question 4.1.1</span>
+<div class="qa"><p class="q">1. getPreferences 和 getSharedPreferences 最主要的差别？</p>
+<p class="a"><code>getSharedPreferences()</code> 可以建立<b>多个</b>档案、存取层级是 <b>Context</b>（同 app 内多个 Activity 能共用同一份）；<code>getPreferences()</code> 只对应<b>单一</b>档案、存取层级是 <b>Activity</b>（只属于呼叫它的那个 Activity）。</p></div>
+<div class="qa"><p class="q">2. SharedPreferences 档案能被哪些存取？a. 多个 Activity　b. 多个 app</p>
+<p class="a">a. <b>可以</b>——只要用 <code>getSharedPreferences()</code>，同一个 app 内的多个 Activity 都能打开同一份。　b. <b>不可以</b>——它受 Ch1 讲的 sandbox 保护，只有同一个 app 能存取，除非用了已被弃用的 <code>sharedUserId</code>。</p></div>
+</div>
+
+<h2 id="c41-s3">3. Saving Files：Internal vs External Storage <span class="tag">考卷 Q3b</span></h2>
+
+<p>File API 用于读写<strong>大量资料</strong>，适合图片档或要透过网络交换的资料。<strong>确切的储存路径在不同装置上可能不同</strong>，不要写死绝对路径。</p>
+
+<div class="tw">
+<table>
+<tr><th>Characteristics</th><th><strong>Internal</strong></th><th><strong>External</strong></th></tr>
+<tr><td><strong>Removable</strong></td><td>No</td><td><strong>Yes (possible)</strong></td></tr>
+<tr><td><strong>Availability</strong></td><td><strong>Always</strong></td><td><strong>Not always</strong>（可能被卸载/移除）</td></tr>
+<tr><td><strong>Accessibility</strong></td><td><strong>Your app only</strong></td><td><strong>World-readable</strong></td></tr>
+</table>
+</div>
+
+<p><strong>Internal</strong>：目录由 <strong>package name</strong> 决定；<strong>读写不需要权限</strong>；用 <code>getFreeSpace()</code> / <code>getTotalSpace()</code> 检查空间避免 IO Error。</p>
+
+<pre><code>val file = File(context.filesDir, filename)
+file.bufferedWriter().use { out -> out.write(fileContent); out.close() }
+if (file.exists()) {
+    val content = file.bufferedReader().readText()
+}</code></pre>
+
+<p><strong>External</strong>：可移除媒体（如 SD 卡）或不可移除的内部储存；档案是 <strong>world-readable</strong>、<strong>用户可修改</strong>、<strong>SD 卡被拔就不可用</strong>。要读写需要请求权限；再分两种：</p>
+
+<div class="tw">
+<table>
+<tr><th></th><th>Public</th><th>Private</th></tr>
+<tr><td>Accessibility</td><td>所有 app</td><td>特定 app（<code>getExternalFilesDir()</code>）</td></tr>
+<tr><td>解除安装后</td><td><strong>保留</strong></td><td><strong>删除</strong></td></tr>
+</table>
+</div>
+
+<pre><code>fun getPrivateAlbumStorageDir(context: Context, albumName: String): File? {
+    val file = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), albumName)
+    if (!file?.mkdirs()) { Log.e(LOG_TAG, "Directory not created") }
+    return file
+}</code></pre>
+
+<p><strong>Storage Guide 总表</strong>（官方新版分类，比上面的 Internal/External 更细）：</p>
+
+<div class="tw">
+<table>
+<tr><th>Type</th><th>内容</th><th>别的 app 能存取？</th><th>解除安装会删？</th></tr>
+<tr><td>App-specific files</td><td>只给自己用</td><td>No</td><td><strong>Yes</strong></td></tr>
+<tr><td>Media</td><td>可分享的图/音/影</td><td>Yes（需权限）</td><td>No</td></tr>
+<tr><td>Documents and other files</td><td>其他可分享内容、下载</td><td>Yes</td><td>No</td></tr>
+<tr><td>App preferences</td><td>key-value</td><td>No</td><td><strong>Yes</strong></td></tr>
+<tr><td>Database</td><td>结构化资料</td><td>No</td><td><strong>Yes</strong></td></tr>
+</table>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>Internal storage is always available and accessible only to the owning app, with no permission required, while external storage may be unavailable if the media is removed, is world-readable with the right permission, and can additionally be split into public files (which survive app uninstallation) and private files (which are deleted with the app).</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q3(b) 满分答法</span>
+<p><strong>(i) 三个差异（6 marks，表格形式）</strong></p>
+<div class="tw">
+<table>
+<tr><th>Characteristics</th><th>Internal Storage</th><th>External Storage</th></tr>
+<tr><td><strong>Removability</strong></td><td>不可移除，是装置内建的一部分</td><td>可能是可移除媒体（如 SD 卡），也可能是不可移除的内部储存</td></tr>
+<tr><td><strong>Availability</strong></td><td><strong>永远可用</strong>，不会因为储存媒体被拔除而无法存取</td><td><strong>不一定可用</strong>，若使用者卸除或移除该储存媒体，档案会暂时无法存取</td></tr>
+<tr><td><strong>Accessibility</strong></td><td>只有<strong>该 app 自己</strong>能存取，读写<strong>不需要权限</strong></td><td><strong>world-readable</strong>，可再分 public（所有 app 可读）与 private（限定 app），且通常需要请求权限</td></tr>
+</table>
+</div>
+<p><strong>(ii) 各提供一种本地储存方法，附 MyGOV 内容例子（4 marks）</strong></p>
+<div class="tw">
+<table>
+<tr><th></th><th>方法</th><th>MyGOV 的例子</th></tr>
+<tr><td>Internal</td><td><code>context.filesDir</code> 搭配 File API，或用 <strong>Room（SQLite）</strong></td><td>把使用者的登入 token、上次同步时间、暂存的申请草稿存在 internal storage，确保只有 MyGOV 自己能读到这些敏感资料</td></tr>
+<tr><td>External</td><td><code>context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)</code></td><td>把使用者下载的<strong>缴费收据 PDF</strong> 或<strong>驾照更新证明</strong>存在 external storage，让使用者接上电脑或用其他 app 也能取用这份文件</td></tr>
+</table>
+</div>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Question 4.1.2</span>
+<div class="qa"><p class="q">1. 要让使用者能用电脑存取的档案，该用 internal 还是 external？</p>
+<p class="a"><b>External</b>——它是 world-readable，接上电脑或透过档案管理器都能直接看到；internal 的档案只有 app 自己能读，使用者无法直接透过电脑存取。</p></div>
+<div class="qa"><p class="q">2. 装置内建、不可移除、但能接电脑存取的储存空间，算 internal 吗？</p>
+<p class="a"><b>不算</b>。虽然它「不可移除」这点符合 internal 的特征，但 internal storage 的关键定义是<b>只有 app 自己能存取</b>；这类内建但对使用者/电脑开放存取的空间，属于<b>不可移除的 external storage</b>，因为 accessibility（是否 world-readable）才是分类的关键，不是能不能移除。</p></div>
+</div>
+
+<h2 id="c41-s4">4. SQLite ＆ Room</h2>
+
+<p><strong>SQLite</strong> 是一个轻量的关聯式资料库，广泛用在 embedded devices、IoT、档案格式、网站、app 内部资料库。</p>
+
+<div class="tw">
+<table>
+<tr><th>Type</th><th>说明</th></tr>
+<tr><td><strong>NULL</strong></td><td>空值</td></tr>
+<tr><td><strong>INTEGER</strong></td><td>整数，依数值大小用 1–8 bytes 存</td></tr>
+<tr><td><strong>REAL</strong></td><td>浮点数，8-byte</td></tr>
+<tr><td><strong>TEXT</strong></td><td>文字字串</td></tr>
+<tr><td><strong>BLOB</strong></td><td>二进位大物件，适合存图片、音讯等媒体</td></tr>
+</table>
+</div>
+
+<p>SQLite 透过 <strong>Room persistence library</strong> 存取，三个组成：</p>
+
+<figure>
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Room 的三个组成部分与资料流向">
+<defs>
+<marker id="c41-arR" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="70" width="150" height="60" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="22" y="94" font-weight="700" font-size="12.5">App 其他部分</text>
+<text x="22" y="112" font-size="10" fill="var(--d-muted)">(Activity/Fragment)</text>
+
+<line x1="166" y1="90" x2="228" y2="90" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arR)"/>
+<text x="170" y="80" font-size="10" fill="var(--d-muted)">Get DAO</text>
+
+<rect x="238" y="70" width="150" height="60" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="252" y="94" font-weight="700" font-size="12.5">DAO</text>
+<text x="252" y="112" font-size="10" fill="var(--d-muted)">Data Access Object</text>
+
+<line x1="396" y1="90" x2="458" y2="90" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arR)"/>
+<text x="400" y="80" font-size="10" fill="var(--d-muted)">Get/Set 栏位值</text>
+
+<rect x="468" y="70" width="150" height="60" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="482" y="94" font-weight="700" font-size="12.5">Entities</text>
+<text x="482" y="112" font-size="10" fill="var(--d-muted)">每个对应一张表</text>
+
+<rect x="238" y="150" width="150" height="40" rx="8" fill="none" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="252" y="174" font-size="11" fill="var(--d-muted)">Room Database（存取点）</text>
+<line x1="313" y1="150" x2="313" y2="132" stroke="var(--d-stroke)" stroke-width="1.3"/>
+</g>
+</svg>
+<figcaption><b>看这里：</b>App 其他部分<b>从来不直接碰 SQL</b>，一路是透过 DAO 拿资料、Entity 是资料在程式里的样子（一个 class 对应一张表），Room Database 只是<b>建立这整套存取点</b>的入口，不是你天天在打交道的物件。</figcaption>
+</figure>
+
+<div class="tw">
+<table>
+<tr><th>组成</th><th>说明</th></tr>
+<tr><td><strong>Database</strong></td><td>存取资料库的<strong>入口</strong></td></tr>
+<tr><td><strong>Entity</strong></td><td><strong>一张表</strong></td></tr>
+<tr><td><strong>DAO</strong>（Data Access Object）</td><td>提供<strong>存取资料库的方法</strong></td></tr>
+</table>
+</div>
+
+<p><strong>四步建立 Room</strong>：</p>
+
+<pre><code>// Step 1: Entity
+@Entity
+data class User(
+    @PrimaryKey val uid: Int,
+    @ColumnInfo(name = "first_name") val firstName: String?,
+    @ColumnInfo(name = "last_name") val lastName: String?
+)
+
+// Step 2: DAO
+@Dao
+interface UserDao {
+    @Query("SELECT * FROM user") fun getAll(): List&lt;User&gt;
+    @Query("SELECT * FROM user WHERE uid IN (:userIds)") fun loadAllByIds(userIds: IntArray): List&lt;User&gt;
+    @Insert fun insertAll(vararg users: User)
+    @Delete fun delete(user: User)
+}
+
+// Step 3: AppDatabase
+@Database(entities = arrayOf(User::class), version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+}
+
+// Step 4: 建立 instance
+val db = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "database-name").build()</code></pre>
+
+<div class="box warn">
+<span class="lab">⚠️ 重要限制</span>
+<p><strong>不要在 UI thread 上直接跑 Room 查询</strong>，要丢到背景执行绪非同步执行——细节留到 <strong>Chapter 4.2</strong> 讲。也可以用 Android Studio 的 <strong>Database Inspector</strong> 检查、查询、修改 app 的资料库，方便除错。</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Question 4.1.3</span>
+<div class="qa"><p class="q">1. 解释 Entity、DAO、Room 各自的用途</p>
+<p class="a"><b>Entity</b> 定义资料库里的一张表，每个栏位对应 class 的一个属性；<b>DAO</b> 提供一组方法（query、insert、delete……）让程式碼可以操作资料库，不用自己写原始 SQL 字串到处散落；<b>Room</b> 是整个持久化框架的入口，透过 <code>Room.databaseBuilder()</code> 建立资料库实例，把 Entity 和 DAO 串在一起，并在编译期检查你写的 SQL query 是否正确。</p></div>
+<div class="qa"><p class="q">2. myhome.com.my 案例：agents 要上传媒体档、发表评论、记录物业位置。解释两个可用的技术。</p>
+<p class="a"><b>技术一：File API（搭配 external storage）</b>——上传的媒体档（照片、影片）属于大型二进位资料，适合用 File API 存进 external storage 的 Pictures/Documents 目录，并可选择性地把档案路径或 URI 记录进资料库，让其他 app（如相簿）也能存取这些媒体。<b>技术二：Room（SQLite）</b>——评论与物业位置属于<b>重复且结构化</b>的资料（每笔评论有作者、时间、内容；每个物业有地址、经纬度），适合用 Entity 定义对应的表、透过 DAO 做 CRUD 操作，比起把这些资料硬塞进 SharedPreferences 或裸档案更有效率，也方便日后查询（例如「找出某个 agent 发表过的所有评论」）。</p></div>
+</div>
+
+<h2 id="c41-s5">5. ViewModel、Repository、LiveData、Coroutine <span class="tag">高频</span></h2>
+
+<h3>5.1 ViewModel — 为什么需要它</h3>
+
+<p><strong>ViewModel 提供 UI 需要的资料，而且能在 configuration change（如转屏）中存活</strong>。这跟 Ch3 讲的「转屏会销毁重建 activity」直接相关——ViewModel 就是为了解决那个问题而存在的。</p>
+
+<figure>
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="传统方式与 ViewModel 在转屏时对 UI 资料的处理差异">
+<defs>
+<marker id="c41-arV" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">传统方式 — 资料跟着 Activity 一起死</text>
+<rect x="8" y="26" width="150" height="70" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="20" y="50" font-weight="700" font-size="11.5">Activity Instance</text>
+<rect x="20" y="60" width="126" height="24" rx="4" fill="var(--d-fill3)"/>
+<text x="30" y="76" font-size="10.5">UI Data</text>
+
+<line x1="163" y1="61" x2="210" y2="61" stroke="var(--d-warn)" stroke="#9a6b00" stroke-width="1.6" marker-end="url(#c41-arV)"/>
+<text x="163" y="51" font-size="10" fill="var(--d-muted)">转屏</text>
+
+<rect x="220" y="26" width="150" height="70" rx="8" fill="var(--d-warn-bg)" fill="#fdf6e3" stroke="var(--d-warn)" stroke="#9a6b00" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="232" y="50" font-weight="700" font-size="11.5">Destroy UI Data</text>
+<text x="232" y="70" font-size="10" fill="var(--d-muted)">✕ 资料丢失</text>
+
+<line x1="377" y1="61" x2="424" y2="61" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arV)"/>
+
+<rect x="434" y="26" width="150" height="70" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="446" y="50" font-weight="700" font-size="11.5">Recreated Activity</text>
+<rect x="446" y="60" width="126" height="24" rx="4" fill="var(--d-fill3)"/>
+<text x="456" y="76" font-size="10.5">重新 Create UI Data</text>
+<text x="446" y="108" font-size="10" fill="var(--d-muted)">要重新抓一次资料（例如重打网络请求）</text>
+
+<line x1="8" y1="140" x2="692" y2="140" stroke="var(--d-line)" stroke-dasharray="2 3"/>
+
+<text x="8" y="164" font-weight="700" font-size="12.5" fill="var(--d-muted)">ViewModel — 资料留在 Activity 外面</text>
+<rect x="8" y="174" width="150" height="70" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="20" y="198" font-weight="700" font-size="11.5">Activity Instance</text>
+<rect x="20" y="208" width="60" height="24" rx="4" fill="var(--d-fill3)"/>
+<text x="27" y="224" font-size="9.5">（只画 UI）</text>
+
+<rect x="200" y="174" width="150" height="70" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.8"/>
+<text x="212" y="198" font-weight="700" font-size="11.5">ViewModel</text>
+<rect x="212" y="208" width="126" height="24" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="222" y="224" font-size="10.5">Hold UI Data ✓存活</text>
+
+<line x1="163" y1="209" x2="198" y2="209" stroke="var(--d-line)" stroke-width="1.3"/>
+<line x1="163" y1="209" x2="163" y2="209" stroke="var(--d-line)"/>
+
+<line x1="163" y1="209" x2="130" y2="140" fill="none" stroke="none"/>
+<text x="392" y="200" font-size="10.5" fill="var(--d-muted)">转屏 → Activity 重建，</text>
+<text x="392" y="216" font-size="10.5" fill="var(--d-muted)">但同一个 ViewModel 实例</text>
+<text x="392" y="232" font-size="10.5" fill="var(--d-muted)">被<b>重新接上</b>，资料还在</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>上半部，UI Data 存在 Activity 物件里面，Activity 一被销毁资料就跟着没了，重建后要重新产生（可能代表要重新打一次网络请求）。下半部，ViewModel 是一个<b>独立于 Activity 生命周期之外</b>的物件，转屏时旧 Activity 被销毁、新 Activity 被建立，但系统会把<b>同一个</b> ViewModel 实例重新接给新的 Activity，资料从头到尾没被动过。</figcaption>
+</figure>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>A ViewModel holds UI-related data and survives configuration changes such as screen rotation. When rotation destroys and recreates the activity, the same ViewModel instance is reattached to the new activity, so the data does not need to be re-fetched — unlike storing data directly in the activity, which is lost every time the activity is destroyed and would need to be recreated, for example by re-running a network request.</p>
+</div>
+
+<h3>5.2 Repository — 多个资料来源的中介</h3>
+
+<p><strong>Repository 提供对多个资料来源的存取</strong>，管理查询用的执行绪，让你可以同时用多个 backend。例如：<strong>Repository 实作「该从网络抓资料，还是用本地资料库的快取」这个判断逻辑</strong>。</p>
+
+<figure>
+<svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="从 UI 到 Room / Network 的完整分层架构">
+<defs>
+<marker id="c41-arL" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="270" y="8" width="160" height="42" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="286" y="34" font-weight="700" font-size="12.5">User Interface</text>
+<text x="286" y="46" font-size="9.5" fill="var(--d-muted)" x="290">(Activity/Fragment)</text>
+
+<line x1="350" y1="50" x2="350" y2="78" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arL)"/>
+
+<rect x="270" y="80" width="160" height="42" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="290" y="106" font-weight="700" font-size="12.5">ViewModel</text>
+
+<line x1="350" y1="122" x2="350" y2="150" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arL)"/>
+
+<rect x="270" y="152" width="160" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.6"/>
+<text x="290" y="178" font-weight="700" font-size="12.5">Repository</text>
+
+<path d="M270,173 L120,173" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c41-arL)"/>
+<path d="M430,173 L580,173" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c41-arL)"/>
+
+<rect x="8" y="152" width="112" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="22" y="178" font-weight="700" font-size="11.5">DAO → Room</text>
+
+<rect x="580" y="152" width="112" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="608" y="178" font-weight="700" font-size="11.5">Network</text>
+
+<text x="8" y="216" font-size="11" fill="var(--d-muted)">本地资料库（快取）</text>
+<text x="580" y="216" font-size="11" fill="var(--d-muted)">远端伺服器</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>UI 只跟 ViewModel 讲话，ViewModel 只跟 Repository 讲话，<b>UI 完全不知道资料到底是从本地资料库还是从网络来的</b>——这个判断全部封装在 Repository 里。这跟 Ch1 讲的 Content Provider「隐藏实作细节」是同一种设计思路。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅ Question 4.1.4</span>
+<div class="qa"><p class="q">Activity、ViewModel、Repository 各自的用途？</p>
+<p class="a"><b>Activity</b>：绘制 UI、接收使用者互动。<b>ViewModel</b>：持有 UI 需要的资料，能在 configuration change 中存活。<b>Repository</b>：提供储存与载入 app 资料的 API，决定该从网络抓还是用本地快取，让 ViewModel 不需要知道资料来源的细节。</p></div>
+</div>
+
+<h3>5.3 LiveData</h3>
+
+<p><strong>LiveData 是一个可观察的资料持有类别</strong>，当它持有的资料改变时会<strong>通知 observer</strong>，而且是 <strong>lifecycle-aware</strong>（知道该在什么时候通知才安全）。</p>
+
+<figure>
+<svg viewBox="0 0 700 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LiveData observer 三步流程">
+<defs>
+<marker id="c41-arO" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="40" width="150" height="50" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="30" y="60" font-weight="700" font-size="12">ViewModel</text>
+<text x="30" y="76" font-size="10.5" fill="var(--d-muted)">持有 LiveData</text>
+
+<line x1="163" y1="65" x2="210" y2="65" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arO)"/>
+<text x="166" y="55" font-size="10" fill="var(--d-muted)">① 附上 observer</text>
+
+<rect x="220" y="40" width="150" height="50" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="252" y="60" font-weight="700" font-size="12">LiveData</text>
+<text x="240" y="76" font-size="10.5" fill="var(--d-muted)">② 新资料到达</text>
+
+<line x1="378" y1="65" x2="425" y2="65" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c41-arO)"/>
+<text x="382" y="55" font-size="10" fill="var(--d-muted)">通知</text>
+
+<rect x="436" y="40" width="150" height="50" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="452" y="60" font-weight="700" font-size="12">UI (Observer)</text>
+<text x="452" y="76" font-size="10.5" fill="var(--d-muted)">③ 更新画面</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>UI 从来不用主动去「问」资料有没有变，是 LiveData<b>主动通知</b>它订阅的 observer。「lifecycle-aware」代表这个通知只会在 UI 处于安全的生命周期状态（例如 Resumed）时才真的触发画面更新，不会在 UI 已经不可见时白白浪费资源。</figcaption>
+</figure>
+
+<pre><code>class UserProfileViewModel: ViewModel() {
+    private val _user = MutableLiveData&lt;User&gt;()
+    val user : LiveData&lt;User&gt; get() = _user
+}
+
+// 在 Activity 里
+userViewModel.user.observe(this, Observer { user ->
+    userNameTextView.text = user?.name
+})
+
+// 之后要更新资料
+user.setValue(newUser)</code></pre>
+
+<div class="box warn">
+<span class="lab">⚠️ Compose 用 StateFlow，不是 LiveData</span>
+<p><strong>StateFlow</strong> 是 Kotlin Coroutines 里设计给 state 管理用的 hot, observable data stream。跟 LiveData 不同，它<strong>完全相容 Jetpack Compose</strong>，是 Compose 里管理 UI state 的官方推荐做法。</p>
+</div>
+
+<h3>5.4 Coroutine</h3>
+
+<p><strong>Coroutine 用于非同步程式设计</strong>：处理可能卡住 main thread、让 app 冻结的长时间工作，提供 <strong>main-safety</strong>——能安全地从 main thread 呼叫网络或硬碟操作。</p>
+
+<div class="tw">
+<table>
+<tr><th>启动方式</th><th>说明</th></tr>
+<tr><td><code>launch</code></td><td>启动一个新 coroutine，<strong>不回传结果</strong>给呼叫者；「做完就算，不用回报」的工作用它</td></tr>
+<tr><td><code>async</code></td><td>启动一个新 coroutine，<strong>可以用 <code>await</code> 这个 suspend function 拿到回传结果</strong></td></tr>
+</table>
+</div>
+
+<div class="tw">
+<table>
+<tr><th>Scope</th><th>存活期间</th><th>资源消耗</th></tr>
+<tr><td>Global Scope</td><td>Application（整个 app 存活期间）</td><td>High</td></tr>
+<tr><td>Lifecycle Scope</td><td>Activity</td><td>Medium</td></tr>
+<tr><td>ViewModel Scope</td><td>ViewModel</td><td>Low</td></tr>
+</table>
+</div>
+
+<pre><code>fun main() {
+    GlobalScope.launch {
+        delay(1000L)
+        println("World!")
+    }
+    println("Hello,")       // main thread 不等 coroutine，直接继续
+    Thread.sleep(2000L)     // 拖住 main thread 让 coroutine 有机会跑完
+}
+// 输出：
+// Hello,
+// World!</code></pre>
+
+<div class="box ok">
+<span class="lab">✅ Question 4.1.5</span>
+<div class="qa"><p class="q">1. Coroutine 的用途是什么？</p>
+<p class="a">处理<b>可能会卡住 main thread 的长时间工作</b>（如网络请求、硬碟读写），提供 <b>main-safety</b>，让这些工作能安全地从主执行绪发起而不冻结 UI。</p></div>
+<div class="qa"><p class="q">2. 为什么不建议在 main thread 上执行资料库相关操作？</p>
+<p class="a">资料库读写（尤其是较大量的查询）<b>耗时且不可预期</b>，若直接在 main（UI）thread 执行，会<b>阻塞 UI 渲染与使用者互动</b>，导致画面卡顿甚至系统跳出「应用程式无回应（ANR）」的警告；正确做法是丢到背景执行绪（例如透过 coroutine），执行完再把结果送回 main thread 更新 UI。</p></div>
+</div>
+
+<h2 id="c41-s6">6. NoSQL — Firebase</h2>
+
+<div class="tw">
+<table>
+<tr><th></th><th>SQL</th><th>NoSQL</th></tr>
+<tr><td>结构</td><td><strong>Table-based</strong>（固定栏位的表格）</td><td>Document / Key-Value / Graph / Wide-Column Stores（更弹性的结构）</td></tr>
+<tr><td>例子</td><td>SQLite / Room</td><td><strong>Firebase</strong> 等</td></tr>
+</table>
+</div>
+
+<hr>
+
+<h2 id="c41-mislead">⚠️ Slide 讲得不完整的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更完整的理解</th><th>考试怎么办</th></tr>
+<tr><td>S20</td><td>Internal/External 的分类和后面的 Storage Guide（新版官方分类）没有明确对照起来</td><td>Storage Guide 的「App-specific files」大致对应旧分类的 Internal；「Media」「Documents」对应 External 的 Public；两套分类是官方文件不同时期留下的说法，考试两边都可能出现</td><td>如果题目问「Internal vs External」用旧分类答；问「Storage Guide 的五种 type」用新表答</td></tr>
+<tr><td>S37/S45</td><td>ViewModel／Repository 的图只画了 Room 那条路径，Network 是后来才加进另一张图</td><td>完整的架构应该同时包含本地资料库与网络两条路径，Repository 的核心价值正是<strong>决定走哪一条</strong></td><td>回答 Repository 的用途时，两条路径都要提到</td></tr>
+</table>
+</div>
+
+<h2 id="c41-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>SharedPreferences</td><td>共享偏好设定</td><td>存私有 primitive 资料的 key-value 档案</td></tr>
+<tr><td>Internal storage</td><td>内部储存</td><td>永远可用、只有自己 app 能存取</td></tr>
+<tr><td>External storage</td><td>外部储存</td><td>可能不可用、world-readable</td></tr>
+<tr><td>Entity</td><td>实体</td><td>Room 里对应一张表的 class</td></tr>
+<tr><td>DAO</td><td>资料存取物件</td><td>提供操作资料库的方法</td></tr>
+<tr><td>ViewModel</td><td>视图模型</td><td>持有 UI 资料，能在转屏中存活</td></tr>
+<tr><td>Repository</td><td>资料仓库</td><td>决定资料从网络抓还是用本地快取</td></tr>
+<tr><td>LiveData</td><td>存活资料</td><td>可观察、lifecycle-aware 的资料持有者</td></tr>
+<tr><td>Coroutine</td><td>协程</td><td>非同步处理长时间工作，提供 main-safety</td></tr>
+</table>
+</div>
+
+<h2 id="c41-cheat">Cheat Sheet</h2>
+<p><strong>三种储存</strong>：SharedPreferences(key-value)／Data Files(档案)／SQLite(结构化重复资料)</p>
+<p><strong>getSharedPreferences</strong>＝多档案＋Context层级；<strong>getPreferences</strong>＝单档案＋Activity层级</p>
+<p><strong>★ Internal</strong>：不可移除／永远可用／只有自己app／不需权限　　<strong>External</strong>：可能可移除／不一定可用／world-readable／需权限，再分public(卸载留)/private(卸载删)</p>
+<p><strong>Room 三件套</strong>：Database(入口)／Entity(表)／DAO(存取方法)；<strong>不要在UI thread跑查询</strong></p>
+<p><strong>ViewModel</strong>：存活转屏／<strong>Repository</strong>：决定网络或本地／<strong>LiveData</strong>：可观察+lifecycle-aware／<strong>Coroutine</strong>：launch(不回传)vs async(回传，配await)</p>
+<p><strong>Scope</strong>：Global(App,资源高)／Lifecycle(Activity,中)／ViewModel(低)</p>
+
+<hr>
+
+<h2 id="c41-practice">Practice</h2>
+
+<h3>A. MCQ (5)</h3>
+<ol>
+<li>Which storage type is always accessible only to the owning app and requires no permission to read/write?<br>(A) Public external storage (B) Private external storage (C) Internal storage (D) Firebase</li>
+<li>What does the Repository layer primarily decide?<br>(A) which colour scheme to use (B) whether to fetch from network or use a local cache (C) which Activity to launch (D) which permission to request</li>
+<li>Which mechanism lets UI data survive a screen rotation without manually saving to a Bundle?<br>(A) SharedPreferences (B) ViewModel (C) Intent (D) Content Provider</li>
+<li>Which coroutine builder should be used for a "fire and forget" background task with no return value needed?<br>(A) async (B) launch (C) await (D) suspend</li>
+<li>In Room, what does an Entity represent?<br>(A) a database connection (B) a single database table (C) a background thread (D) a network request</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw"><table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>C</strong></td><td>Internal storage is always available, app-private, and needs no permission — that's its defining set of traits.</td></tr>
+<tr><td>2</td><td><strong>B</strong></td><td>The Repository's core job is deciding the data source, hiding that decision from the ViewModel/UI.</td></tr>
+<tr><td>3</td><td><strong>B</strong></td><td>ViewModel survives configuration changes by design; the activity holding data directly does not.</td></tr>
+<tr><td>4</td><td><strong>B</strong></td><td>launch doesn't return a result to the caller, matching "fire and forget".</td></tr>
+<tr><td>5</td><td><strong>B</strong></td><td>An Entity class maps to one table in the SQLite database.</td></tr>
+</table></div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Differentiate internal and external storage across three characteristics, in table format. <em>(6 marks)</em></li>
+<li>Explain why a ViewModel is preferred over storing data directly on the Activity for data that should survive rotation. <em>(5 marks)</em></li>
+<li>Explain the purpose of LiveData and what "lifecycle-aware" means in this context. <em>(5 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong></p>
+<div class="tw"><table>
+<tr><th>Characteristic</th><th>Internal</th><th>External</th></tr>
+<tr><td>Removability</td><td>Not removable</td><td>Possibly removable (e.g. SD card)</td></tr>
+<tr><td>Availability</td><td>Always available</td><td>Not always available (unmount/removal)</td></tr>
+<tr><td>Accessibility</td><td>App only, no permission needed</td><td>World-readable, permission typically required</td></tr>
+</table></div>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> When data is held directly by the Activity instance, a configuration change such as rotation destroys and recreates that instance, taking the data with it — the app must reconstruct it from scratch, which may mean re-issuing a network call. A <b>ViewModel</b> is scoped outside the Activity's own lifecycle, so when the Activity is destroyed and recreated, the system reattaches the <b>same ViewModel instance</b> to the new Activity, and the data it holds is never actually lost or recomputed.</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> LiveData is an observable data holder: when the value it holds changes, it automatically notifies any observers attached to it, so the UI doesn't need to poll for updates. "Lifecycle-aware" means LiveData only delivers updates to an observer when that observer's associated lifecycle (e.g. the Activity or Fragment) is in an active state such as Resumed — it will not update UI that is not currently visible, avoiding wasted work and potential crashes from updating a destroyed view.</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>For each MyGOV data item, decide SharedPreferences/DataStore, File API, or Room, with a reason: (a) the user's preferred display language (b) a downloaded payment receipt PDF (c) a list of the user's past applications with status, date and category.</li>
+<li>MyGOV's ViewModel currently fetches the service list directly inside the Activity's onCreate. Identify the design problem and rewrite the responsibility split using ViewModel and Repository.</li>
+<li>Explain why Room queries must not run on the main thread, using a concrete consequence.</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> (a) <b>SharedPreferences/DataStore</b> — a single simple key-value setting. (b) <b>File API (external storage)</b> — a large binary document the user should be able to access outside the app. (c) <b>Room</b> — repeating, structured records that benefit from querying and filtering.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> The problem: fetching data directly in onCreate ties the data to the Activity's lifecycle, so it is lost and re-fetched on every rotation, wasting network calls and potentially showing a loading flicker. The fix: the <b>ViewModel</b> should hold the service list as LiveData/StateFlow, and the actual fetching logic should live in a <b>Repository</b> that the ViewModel calls once (typically on first creation, not tied to the Activity); the Activity only observes the ViewModel's data and never fetches anything itself.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> Room queries can take an unpredictable amount of time, especially as the dataset grows. Running one on the main thread blocks UI rendering and touch handling for that duration; if it takes too long, Android may show an "Application Not Responding" (ANR) dialog to the user. The fix is to run the query on a background thread (via a coroutine, for instance) and post only the final result back to the main thread to update the UI.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>ViewModel solves the "data lost on rotation" problem differently from Bundle/onSaveInstanceState (Ch3). Explain when each is the right tool. <em>(6 marks)</em></li>
+<li>Why does the Repository pattern make an app easier to test and maintain, even though it adds an extra layer between ViewModel and the actual data source? <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> <code>Bundle</code>/<code>onSaveInstanceState</code> is the right tool for <b>small, serialisable pieces of UI state</b> that must survive even a full process death (not just a configuration change) — such as the text currently typed into a field — because the Bundle is explicitly saved and restored by the system across that boundary. <b>ViewModel</b> is the right tool for <b>larger or more structured data</b> that only needs to survive configuration changes (not a full process kill) — such as a fetched list of results — because it avoids the overhead of serialising everything into a Bundle and simply keeps the same object alive in memory. In practice, robust apps use both: ViewModel for the bulk of the UI state, and a small Bundle save for the few fields that must also survive a process death.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> Without a Repository, the ViewModel would need to know the concrete details of every data source — how to query Room, how to call the network API, how to decide which one to trust — which couples the ViewModel tightly to those implementations. With a Repository, the ViewModel only depends on a simple interface ("give me the current data"), so the actual data source can be swapped, mocked, or changed (e.g. adding a cache, switching APIs) <b>without touching the ViewModel or UI at all</b>. This also makes testing easier: a test can substitute a fake Repository that returns known data instantly, without needing a real database or network connection.</p>
+</div>
+
+<h2 id="c41-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>展开在哪一章</th></tr>
+<tr><td>「不要在 UI thread 跑 Room 查询」</td><td><strong>Ch 4.2</strong> — Background operations、背景执行绪的完整处理方式</td></tr>
+<tr><td>Repository 判断「网络 vs 本地快取」</td><td><strong>Ch 4.2</strong> — Network operations、Volley、AsyncTask</td></tr>
+<tr><td>ViewModel 解决转屏丢资料的问题</td><td><strong>Ch 3</strong> — Activity Lifecycle、Configuration Change（回头看会更懂）</td></tr>
+<tr><td>LazyColumn 显示清单资料</td><td><strong>Ch 2.1</strong> — 搭配 Room 查询结果显示成清单</td></tr>
+</table>
+</div>
+
+</section>
+
+<section class="chapter" id="chapter-4-2">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 4.2 — Network Operation, Background Operation and Mobile Server Options</h1>
+  <p class="lede">这一章是<strong>考卷 Q3(a) 的原始出处</strong>——「Define Front End and Back End」＋「Illustrate mobile system architecture using a diagram」，共 9 分，到目前为止都还没有笔记覆盖到。这份补上完整架构图，再把背景工作的选择流程、AsyncTask 与 Volley 的运作方式画清楚。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c42-s1">Mobile-to-server Communication</a> <span class="tag">考卷 Q3a</span></li>
+<li><a href="#c42-s2">通讯协定：REST vs SOAP</a></li>
+<li><a href="#c42-s3">背景操作</a></li>
+<li><a href="#c42-s4">网络操作：AsyncTask ＆ Volley</a></li>
+<li><a href="#c42-s5">MQTT</a></li>
+<li><a href="#c42-s6">Mobile Server Options</a></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>Q3(a)(i) 定义 Front End／Back End（4 分），Q3(a)(ii) 画出 mobile system architecture（5 分）——第 1 节结尾有完整满分答法，含可以照抄的架构图。</p>
+</div>
+
+<h2 id="c42-s1">1. Mobile-to-server Communication <span class="tag">考卷 Q3a</span></h2>
+
+<p>大多数 mobile app 只是<strong>前端介面</strong>，真正的资料与逻辑在<strong>后端服务</strong>里。两者透过 <strong>API（Application Programming Interface）</strong>沟通。</p>
+
+<figure>
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mobile system architecture：Front-end 与 Back-end 的完整结构">
+<defs>
+<marker id="c42-arM" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<rect x="8" y="8" width="300" height="230" rx="10" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="22" y="30" font-weight="700" font-size="13" fill="var(--d-accent)">Front-end</text>
+
+<rect x="24" y="42" width="130" height="60" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="36" y="66" font-weight="700" font-size="12">Mobile Client</text>
+<text x="36" y="84" font-size="10" fill="var(--d-muted)">(UI, 使用者互动)</text>
+
+<rect x="24" y="150" width="130" height="60" rx="8" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="36" y="174" font-weight="700" font-size="12">Local Database</text>
+<text x="36" y="192" font-size="10" fill="var(--d-muted)">(离线快取)</text>
+
+<line x1="89" y1="102" x2="89" y2="148" stroke="var(--d-stroke)" stroke-width="1.5"/>
+
+<rect x="310" y="98" width="90" height="50" rx="8" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="322" y="120" font-weight="700" font-size="12">Network</text>
+<text x="322" y="136" font-size="9.5" fill="var(--d-muted)">(HTTP/HTTPS)</text>
+
+<line x1="154" y1="72" x2="308" y2="120" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c42-arM)"/>
+<line x1="308" y1="130" x2="154" y2="180" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c42-arM)"/>
+
+<rect x="410" y="8" width="282" height="230" rx="10" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="424" y="30" font-weight="700" font-size="13" fill="var(--d-accent)">Back-end</text>
+
+<rect x="426" y="42" width="130" height="60" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="438" y="66" font-weight="700" font-size="12">API Server</text>
+<text x="438" y="84" font-size="10" fill="var(--d-muted)">(处理请求、逻辑)</text>
+
+<line x1="491" y1="102" x2="491" y2="148" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c42-arM)"/>
+
+<rect x="426" y="150" width="130" height="60" rx="8" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="438" y="174" font-weight="700" font-size="12">Database Server</text>
+<text x="438" y="192" font-size="10" fill="var(--d-muted)">↕ Cloud Database</text>
+
+<line x1="400" y1="123" x2="424" y2="72" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c42-arM)"/>
+</g>
+</svg>
+<figcaption><b>看这里：</b>左边 Front-end 只有<b>Mobile Client（UI）</b>和一份<b>本地快取</b>；真正的资料库、逻辑运算全部在右边 Back-end 里，两边隔着一层 <b>Network</b> 沟通。这条边界就是「为什么 app 需要网络才能同步资料」的根本原因。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q3(a) 满分答法</span>
+<p><strong>(i) 定义 Front End 和 Back End（4 marks）</strong></p>
+<p><strong>Front End</strong> 是使用者<strong>直接互动</strong>的部分，即 mobile app 本身的使用者介面——画面、输入、显示的资料。<strong>Back End</strong> 是在<strong>伺服器端</strong>执行的部分，提供资料库、脚本（API）与 app 的整体架构，负责储存资料与处理商业逻辑。两者透过 API 沟通。</p>
+<p><strong>(ii) 画出 mobile system architecture（5 marks）</strong>——上面那张图就是满分答案的结构，画的时候至少要标出：<strong>Mobile Client、Local Database、Network、API Server、Database Server、Cloud Database</strong> 六个方块，并用箭头表示 Front-end 透过 Network 跟 Back-end 的 API Server 沟通、API Server 再跟 Database Server／Cloud Database 沟通。</p>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>The front end is the part the user interacts with directly — the mobile app's user interface. The back end runs on the server side and provides the database, the API, and the overall application logic. They communicate over the network through an API: the mobile client sends requests to an API server, which in turn reads from or writes to a database server backed by a cloud database, while the mobile client may also keep a local database for offline access.</p>
+</div>
+
+<h2 id="c42-s2">2. 通讯协定：REST vs SOAP</h2>
+
+<p><strong>HTTP 是最常用的协定</strong>；沟通方式有三种：<strong>SOAP、REST、XML-RPC</strong>。</p>
+
+<div class="tw">
+<table>
+<tr><th></th><th>REST</th><th>SOAP</th></tr>
+<tr><td>资料格式</td><td><strong>HTML、XML、JSON</strong></td><td><strong>只有 XML</strong></td></tr>
+<tr><td>特性</td><td><strong>继承 HTTP 操作</strong>：GET、POST、PUT、DELETE</td><td>可搭配 HTTP、SMTP、TCP、UDP</td></tr>
+<tr><td>结构</td><td>轻量</td><td>Envelope → Header + Body</td></tr>
+</table>
+</div>
+
+<p><strong>JSON 比 XML 更快更容易</strong>，大多数 Google API 都是 JSON REST service。Android 用 <strong><code>JSONObject</code></strong> 读 JSON 串流：</p>
+
+<pre><code>val json = JSONObject(str_response)
+val array = json.getJSONArray("records")
+for (i in 0 until array.length()) {
+    val obj = array.getJSONObject(i)
+    val id = obj.getString("id")
+    val name = obj.getString("name")
+}</code></pre>
+
+<h2 id="c42-s3">3. 背景操作</h2>
+
+<p><strong>UI 与网络操作必须在不同的执行绪</strong>；在 UI thread 做网络操作会丢出 <strong><code>NetworkOnMainThreadException</code></strong>。两种 thread：<strong>Main (UI)</strong> 与 <strong>Background</strong>——该丢到背景的工作包括 Decode Bitmap、Disk I/O、Network I/O。</p>
+
+<figure>
+<svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="该用哪个背景工作方案的决策树">
+<defs>
+<marker id="c42-arD" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<rect x="8" y="14" width="220" height="46" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="22" y="34" font-size="12">是 Network I/O 下载？</text>
+<text x="22" y="50" font-size="10" fill="var(--d-muted)">(长时间 HTTP 下载)</text>
+
+<rect x="8" y="94" width="220" height="46" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="22" y="114" font-size="12">要看系统条件才做？</text>
+<text x="22" y="130" font-size="10" fill="var(--d-muted)">(如有网络、有电才做)</text>
+
+<rect x="8" y="174" width="220" height="46" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="22" y="194" font-size="12">要在指定时间执行？</text>
+
+<line x1="118" y1="60" x2="118" y2="92" stroke="var(--d-stroke)" stroke-width="1.4" marker-end="url(#c42-arD)"/>
+<text x="126" y="80" font-size="10.5" fill="var(--d-muted)">No</text>
+<line x1="118" y1="140" x2="118" y2="172" stroke="var(--d-stroke)" stroke-width="1.4" marker-end="url(#c42-arD)"/>
+<text x="126" y="160" font-size="10.5" fill="var(--d-muted)">No</text>
+
+<line x1="228" y1="37" x2="280" y2="37" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c42-arD)"/>
+<text x="232" y="27" font-size="11" fill="var(--d-accent)" font-weight="700">Yes</text>
+<rect x="290" y="14" width="180" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="304" y="42" font-weight="700" font-size="12.5">DownloadManager</text>
+
+<line x1="228" y1="117" x2="280" y2="117" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c42-arD)"/>
+<text x="232" y="107" font-size="11" fill="var(--d-accent)" font-weight="700">Yes</text>
+<rect x="290" y="94" width="180" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="304" y="122" font-weight="700" font-size="12.5">WorkManager</text>
+
+<line x1="228" y1="197" x2="280" y2="197" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c42-arD)"/>
+<text x="232" y="187" font-size="11" fill="var(--d-accent)" font-weight="700">Yes</text>
+<rect x="290" y="174" width="180" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="304" y="202" font-weight="700" font-size="12.5">AlarmManager</text>
+
+<line x1="118" y1="220" x2="118" y2="230" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<line x1="118" y1="230" x2="510" y2="230" stroke="var(--d-stroke)" stroke-width="1.4" marker-end="url(#c42-arD)"/>
+<text x="380" y="222" font-size="10.5" fill="var(--d-muted)">No + 现在立刻做、必须完成</text>
+<rect x="510" y="207" width="180" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="524" y="226" font-weight="700" font-size="11.5">Foreground Service</text>
+<text x="524" y="242" font-size="9" fill="var(--d-muted)">Now or Never</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>这四个问题<b>要按顺序问</b>，不是四选一并列比较——先问是不是下载，不是的话再问要不要看系统条件，都不是才轮到指定时间或立刻执行。这个顺序本身就是常考的判断逻辑。</figcaption>
+</figure>
+
+<div class="tw">
+<table>
+<tr><th>Class</th><th>Description</th></tr>
+<tr><td><strong>DownloadManager</strong></td><td>执行长时间的 HTTP 下载</td></tr>
+<tr><td><strong>Foreground Service</strong></td><td>使用者发起、<strong>需要立即执行且必须执行到完成</strong>的工作</td></tr>
+<tr><td><strong>AlarmManager</strong></td><td>在<strong>你指定的时间</strong>执行工作</td></tr>
+<tr><td><strong>WorkManager</strong></td><td>在工作条件（如<strong>网络可用、有电力</strong>）满足时才执行的<strong>可延后</strong>背景工作</td></tr>
+</table>
+</div>
+
+<p>Kotlin 传输资料建议用 <strong>WorkManager 搭配 coroutine</strong>；若需要<strong>定期但非即时</strong>同步资料，用 <strong>Sync Adapters</strong>。</p>
+
+<div class="box ok">
+<span class="lab">✅ 4.2.1 Questions</span>
+<div class="qa"><p class="q">1. 解释 mobile app、API、back-end 三者的关系</p>
+<p class="a">Mobile app 是<b>前端介面</b>，负责跟使用者互动；<b>API</b> 是两端沟通的<b>规则与管道</b>，定义前端可以请求哪些操作、传什么格式的资料；<b>back-end</b> 是实际处理请求、存取资料库的伺服器端逻辑。App 透过 API 向 back-end 发出请求，back-end 处理完再透过 API 把结果传回。</p></div>
+<div class="qa"><p class="q">2. 为什么网络相关工作不该放在 UI thread？</p>
+<p class="a">网络操作<b>涉及不可预期的延迟</b>（对方伺服器慢、网络不稳定），若放在 UI thread 会<b>直接冻结整个画面</b>，使用者点不了任何东西；系统甚至会主动丢出 <code>NetworkOnMainThreadException</code> 阻止这种写法，强制开发者把网络工作移到背景执行绪。</p></div>
+</div>
+
+<h2 id="c42-s4">4. 网络操作：AsyncTask ＆ Volley</h2>
+
+<p><strong>权限</strong>：<code>INTERNET</code> + <code>ACCESS_NETWORK_STATE</code>。<strong>最佳实践</strong>：①<strong>尽量少传敏感资料</strong> ②<strong>所有流量走 SSL</strong>。</p>
+
+<figure>
+<svg viewBox="0 0 700 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AsyncTask 三步流程">
+<defs>
+<marker id="c42-arA" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="60" width="170" height="50" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="22" y="80" font-weight="700" font-size="12">① onPreExecute()</text>
+<text x="22" y="96" font-size="10" fill="var(--d-muted)">UI thread，准备工作</text>
+
+<line x1="182" y1="85" x2="260" y2="85" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c42-arA)"/>
+
+<rect x="270" y="20" width="170" height="120" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.6"/>
+<text x="284" y="42" font-weight="700" font-size="12">② doInBackground()</text>
+<text x="284" y="60" font-size="10" fill="var(--d-muted)">背景 thread，做真正</text>
+<text x="284" y="74" font-size="10" fill="var(--d-muted)">耗时的工作（网络/IO）</text>
+<text x="284" y="118" font-size="10" fill="var(--d-warn)" fill="#9a6b00" font-weight="700">必须覆写</text>
+
+<line x1="444" y1="85" x2="522" y2="85" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c42-arA)"/>
+
+<rect x="532" y="60" width="160" height="50" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="546" y="80" font-weight="700" font-size="12">③ onPostExecute()</text>
+<text x="546" y="96" font-size="10" fill="var(--d-muted)">回到 UI thread，更新画面</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>只有中间那一步<b>③②不在 UI thread</b>，前后两步都是 UI thread——这正是 AsyncTask 存在的意义：让「耗时的部分」跟「更新画面的部分」自动切到对的执行绪，开发者不用自己手动切换。</figcaption>
+</figure>
+
+<p>使用条件：必须是 <strong>private subclass</strong>；至少覆写 <code>doInBackground(Params…)</code>；通常也覆写 <code>onPostExecute(Result)</code>；<strong>只适合短时间的操作</strong>。</p>
+
+<p><strong>Volley</strong>（HTTP library）：把资料填到 UI（main thread），例如显示搜寻结果；<strong>不适合大型下载或串流</strong>；支援 <strong>String、Image、JSON</strong>。好处：<strong>自动排程网络请求、多个并行连线、支援优先顺序、支援取消请求</strong>。三种 request：<code>StringRequest</code>、<code>JsonObjectRequest</code>、<code>JsonArrayRequest</code>。RequestQueue 需要 <strong>network + cache</strong>；常用网络的 app 建议用 <strong>singleton pattern</strong> 封装 RequestQueue，避免重复建立。</p>
+
+<div class="box ok">
+<span class="lab">✅ 4.2.1 Question 3</span>
+<div class="qa"><p class="q">解释 AsyncTask 在网络操作中的用途</p>
+<p class="a">AsyncTask 让一个耗时工作能<b>自动在正确的执行绪间切换</b>：<code>onPreExecute()</code> 在 UI thread 做准备（例如显示 loading）、<code>doInBackground()</code> 在背景 thread 执行真正的网络请求、<code>onPostExecute()</code> 再回到 UI thread 把结果显示出来，开发者不需要自己手动管理 thread 切换，只需覆写对应的方法。它适合<b>短时间</b>的网络操作，较长或需要精细控制的场景建议改用 coroutine 或 WorkManager。</p></div>
+</div>
+
+<h2 id="c42-s5">5. MQTT</h2>
+
+<p><strong>Message Queuing Telemetry Transport</strong>：跑在 <strong>TCP/IP</strong> 之上的 <strong>machine-to-machine</strong> 连线协定，使用 <strong>publish/subscribe</strong> 传输模式。</p>
+
+<div class="box ok">
+<span class="lab">✅ 4.2.2 Question：为什么 MQTT 适合用来跟 IoT 装置沟通？</span>
+<p>MQTT 是<strong>轻量协定</strong>，封包开销小，适合<strong>频宽有限、连线不稳定</strong>的 IoT 环境；<strong>publish/subscribe 模式</strong>让一个装置的状态变化可以<strong>同时广播给多个订阅者</strong>，不需要为每个接收方各建一条连线；同时它是<strong>即时（real-time）</strong>的，很适合 IoT 场景常见的「状态一变就要立刻通知」需求（例如感测器侦测到异常要马上推播）。</p>
+</div>
+
+<h2 id="c42-s6">6. Mobile Server Options</h2>
+
+<p><strong>后端三大核心功能</strong>：<strong>Application server · Web server · Database</strong>。常见后端技术：Ruby on Rails、Express/Koa/Sails (Node.js)、Django (Python)、PHP MVC frameworks、<strong>Google Firebase</strong>。</p>
+
+<div class="tw">
+<table>
+<tr><th></th><th><strong>DIY</strong>（自建）</th><th><strong>Subscribe</strong>（订阅／BaaS）</th></tr>
+<tr><td>优点</td><td><strong>完全掌控</strong>硬体、软体、网络、服务</td><td><strong>成本效益、可扩展性、速度、整合、稽核合规、业务持续性</strong></td></tr>
+<tr><td>缺点</td><td>大量客制、复杂、<strong>安全漏洞、效能不足、可靠度差</strong>、要花时间维运</td><td><strong>pay-for-use</strong>（用越多越贵）、<strong>安全性</strong>（资料放别人家）</td></tr>
+</table>
+</div>
+
+<p><strong>Subscribe 的四种形式</strong>：<strong>Cloud</strong>（随需运算、按用付费）· <strong>Container</strong>（把 app 与执行环境抽离的封装）· <strong>Virtualisation</strong>（在抽象层跑虚拟机器）· <strong>BaaS</strong>（Backend as a Service）。BaaS 提供：Storage、Push Notifications、Usage analytics、Dashboard、Social integration、User administration、Custom code integration。BaaS 例子：<strong>Firebase</strong>（Google）、<strong>Apple CloudKit</strong>；其他云端：AWS、Azure、Alibaba Cloud、Huawei Cloud。
+
+<div class="box ok">
+<span class="lab">✅ 4.2.3 Questions</span>
+<div class="qa"><p class="q">1. 比较订阅式（BaaS）与传统 DIY 伺服器方案</p>
+<p class="a">DIY 给开发团队<b>完全的掌控权</b>，能针对特殊需求深度客制，但要自己承担<b>安全、效能、可靠度、维运人力</b>的全部责任，前期开发时间也较长。订阅式（BaaS）<b>省下大部分基础建设与维运工作</b>，能更快上线、随用量弹性扩展，但<b>持续产生费用</b>（用越多付越多），而且部分核心逻辑与资料掌控权交给了第三方平台，需要评估其安全性与合规性是否符合需求。</p></div>
+<div class="qa"><p class="q">2. H&amp;H 案例：搜寻慢、地区管理效率差，要加 push notification 与 chatbot，怎么用最安全且最省成本的方式部署？</p>
+<p class="a">建议采用 <b>BaaS（如 Firebase）</b>而非自建伺服器：Push notification 直接用 <b>Firebase Cloud Messaging</b>，不需要自己维护推播基础建设；chatbot 可以用 BaaS 平台提供的 custom code integration（如 Cloud Functions）串接现成的对话服务，而不是从零开发自然语言处理系统。这样能用<b>最低的前期投入</b>快速上线两项新功能，同时利用平台既有的<b>使用者身份验证与资料加密机制</b>处理安全性，比自建伺服器更快、更省成本，也更不容易因为自行维运不当而出现安全漏洞。</p></div>
+</div>
+
+<hr>
+
+<h2 id="c42-mislead">⚠️ Slide 讲得不完整的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更完整的理解</th><th>考试怎么办</th></tr>
+<tr><td>背景工作决策树</td><td>四个问题的判断顺序图（Network I/O？→ 系统条件？→ 指定时间？→ 立刻执行？）没有额外解释为什么是这个顺序</td><td>这个顺序其实是<strong>从「最明确的场景」排到「最模糊的场景」</strong>——先排除最典型的下载需求，再排除可延后的一般背景工作，剩下的才是真正特殊（定时或必须立即）的情境</td><td>考试只要能照顺序判断出正确答案即可，不用解释排序逻辑</td></tr>
+<tr><td>AsyncTask</td><td>Slide 呈现为标准做法，但没提到它的现状</td><td>AsyncTask 自 <strong>API 30 起已被 Google 正式 deprecated</strong>，官方建议改用 <strong>Kotlin coroutine（配合 WorkManager 或 lifecycleScope）</strong>处理背景工作</td><td>考试照 slide 答 AsyncTask 三步流程即可，这是它要的标准答案，但实作上知道该转向 coroutine 会加分</td></tr>
+</table>
+</div>
+
+<h2 id="c42-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>Front end</td><td>前端</td><td>使用者直接互动的 app UI</td></tr>
+<tr><td>Back end</td><td>后端</td><td>伺服器端的资料库、API 与逻辑</td></tr>
+<tr><td>API</td><td>应用程式介面</td><td>前后端沟通的规则与管道</td></tr>
+<tr><td>REST</td><td>表现层状态转换</td><td>继承 HTTP 操作，支援 HTML/XML/JSON</td></tr>
+<tr><td>SOAP</td><td>简单物件存取协定</td><td>只用 XML，可搭配多种传输协定</td></tr>
+<tr><td>NetworkOnMainThreadException</td><td>主线程网络例外</td><td>在 UI thread 做网络操作会丢出的例外</td></tr>
+<tr><td>WorkManager</td><td>工作管理器</td><td>视系统条件执行可延后的背景工作</td></tr>
+<tr><td>AsyncTask</td><td>非同步任务</td><td>三步流程处理短时间背景工作（已 deprecated）</td></tr>
+<tr><td>MQTT</td><td>讯息佇列遥测传输</td><td>轻量 publish/subscribe 协定，适合 IoT</td></tr>
+<tr><td>BaaS</td><td>后端即服务</td><td>订阅式，省去自建伺服器的维运工作</td></tr>
+</table>
+</div>
+
+<h2 id="c42-cheat">Cheat Sheet</h2>
+<p><strong>架构</strong>：Mobile Client＋Local DB（Front-end）── Network ──API Server──Database Server／Cloud Database（Back-end）</p>
+<p><strong>REST</strong>：HTML/XML/JSON，继承 HTTP 动作　　<strong>SOAP</strong>：只有 XML</p>
+<p><strong>背景方案</strong>：下载→DownloadManager／视系统条件→WorkManager／指定时间→AlarmManager／立刻且必须完成→Foreground Service</p>
+<p><strong>AsyncTask</strong>：onPreExecute(UI)→doInBackground(背景)→onPostExecute(UI)，只适合短工作</p>
+<p><strong>Volley</strong>：适合 UI 用的中小型请求，不适合大型下载／<strong>MQTT</strong>：轻量、pub-sub、适合 IoT</p>
+<p><strong>DIY</strong>：掌控高、维运重／<strong>BaaS</strong>：省维运、持续付费</p>
+
+<hr>
+
+<h2 id="c42-practice">Practice</h2>
+
+<h3>A. MCQ (5)</h3>
+<ol>
+<li>Which exception is thrown when a network call is made directly on the UI thread?<br>(A) IllegalStateException (B) NetworkOnMainThreadException (C) IOException (D) ANRException</li>
+<li>MyGOV needs to run a background sync only when the device has network access and is charging. Which class fits best?<br>(A) AlarmManager (B) DownloadManager (C) WorkManager (D) AsyncTask</li>
+<li>Which data format(s) does SOAP support?<br>(A) JSON only (B) XML only (C) HTML, XML and JSON (D) Protocol Buffers</li>
+<li>In AsyncTask, which method actually performs the time-consuming work off the UI thread?<br>(A) onPreExecute (B) doInBackground (C) onPostExecute (D) execute</li>
+<li>Which server option typically offers the fastest time-to-launch with the least infrastructure maintenance?<br>(A) DIY server (B) Bare-metal hosting (C) BaaS (D) On-premise server</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw"><table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>B</strong></td><td>Android explicitly throws this to prevent blocking network calls on the UI thread.</td></tr>
+<tr><td>2</td><td><strong>C</strong></td><td>WorkManager runs deferrable work when specified conditions (network, charging) are met.</td></tr>
+<tr><td>3</td><td><strong>B</strong></td><td>SOAP supports XML only; REST is the one that supports HTML, XML and JSON.</td></tr>
+<tr><td>4</td><td><strong>B</strong></td><td>doInBackground runs on a background thread; the other two run on the UI thread.</td></tr>
+<tr><td>5</td><td><strong>C</strong></td><td>BaaS hands off infrastructure and maintenance, trading ongoing cost for speed.</td></tr>
+</table></div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Define front end and back end, and illustrate the mobile system architecture connecting them with a diagram. <em>(9 marks)</em></li>
+<li>Explain why AsyncTask splits work across onPreExecute, doInBackground and onPostExecute instead of running everything in one method. <em>(5 marks)</em></li>
+<li>Compare REST and SOAP in terms of supported data formats and underlying transport. <em>(5 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> The <b>front end</b> is the part the user interacts with directly — the mobile app's user interface. The <b>back end</b> runs on the server and provides the database, the API and the application's core logic. Architecture: the mobile client (front end), which may keep a local database for offline use, communicates over the network with an API server (back end), which in turn reads from and writes to a database server backed by a cloud database.</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> The three methods run on <b>different threads for different purposes</b>: onPreExecute and onPostExecute run on the UI thread because they touch the UI directly (showing a loading indicator, then displaying the result), while doInBackground runs on a background thread because it performs the actual time-consuming work (a network call, for instance) that would freeze the UI if run on the main thread. Splitting them lets AsyncTask automatically move execution to the correct thread at each stage without the developer manually managing thread switches.</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> REST supports HTML, XML and JSON and inherits standard HTTP operations (GET, POST, PUT, DELETE) directly. SOAP supports only XML, structured as an envelope with a header and body, and can run over several application-layer protocols including HTTP, SMTP, TCP or UDP, not just HTTP.</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>For each MyGOV background task, pick DownloadManager, WorkManager, AlarmManager or Foreground Service: (a) downloading a large PDF form template (b) syncing application status every few hours when Wi-Fi is available (c) triggering a reminder notification at a fixed appointment time (d) uploading a document the user just chose to submit right now, which must finish even if they switch apps.</li>
+<li>H&amp;H (car parts supplier) wants push notifications and a chatbot deployed securely and cost-effectively. Justify choosing a BaaS over a self-built server for this case.</li>
+<li>Explain what would go wrong if MyGOV performed a Room database query directly inside a button's onClick handler on the main thread.</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> (a) <b>DownloadManager</b> — a long-running HTTP download. (b) <b>WorkManager</b> — deferrable, condition-based (Wi-Fi available). (c) <b>AlarmManager</b> — a specific scheduled time. (d) <b>Foreground Service</b> — user-initiated, must run now and complete.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> A BaaS platform such as Firebase already provides push notification infrastructure (Firebase Cloud Messaging) and custom-code integration for a chatbot backend, so H&amp;H avoids building and maintaining that infrastructure from scratch. This is both faster to launch and more cost-effective than a DIY server, since ongoing security patching, scaling and reliability are handled by the platform rather than an in-house team — directly addressing H&amp;H's stated need for a secure, low-cost rollout of two new features.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> Since the query runs on the main (UI) thread, the app would freeze for the duration of the query — no touch input, animation, or screen update can happen until it finishes. If the query takes too long, Android may show an "Application Not Responding" dialog to the user. The button handler should instead dispatch the query to a background thread (e.g. via a coroutine) and only post the result back to the main thread once it's ready.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>WorkManager and Foreground Service both run background work, but the decision tree places them at opposite ends ("depends on conditions" vs "now or never"). Explain what fundamentally distinguishes when each is the right choice. <em>(6 marks)</em></li>
+<li>Why might a government app like MyGOV be more cautious about using a third-party BaaS than a typical consumer app, even though BaaS is generally faster and cheaper? <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> The distinguishing factor is <b>urgency and user expectation</b>, not just "is it background work". WorkManager is for work the user does not need to see happen immediately and that the system can freely delay or batch to save resources — the trade-off it accepts is flexible timing in exchange for efficiency. A Foreground Service is for work the user explicitly initiated and is actively waiting on, where delaying it would break their expectation (e.g. an upload they just tapped "submit" for) — it accepts the cost of a persistent notification and continuous execution in exchange for guaranteeing the work happens right away and runs to completion.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> A government app handles sensitive citizen data — identity information, payment details, application records — under legal and public-trust obligations that a typical consumer app does not carry. Using a third-party BaaS means that data, or at least parts of the processing pipeline, passes through infrastructure the government does not fully control, raising questions about data residency (where the data is physically stored), compliance with national data-protection regulations, and the platform provider's own security practices. The speed and cost savings BaaS offers have to be weighed against these accountability requirements, which is why a government app might choose a more controlled DIY or hybrid approach for its most sensitive functions even at higher cost.</p>
+</div>
+
+<h2 id="c42-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>展开在哪一章</th></tr>
+<tr><td>Room 查询不能在 UI thread（Ch4.1 提过）</td><td>这一章把「为什么」与「该怎么处理」讲完整了</td></tr>
+<tr><td>Repository「决定网络或本地快取」</td><td><strong>Ch 4.1</strong> — 回头看会更懂 Repository 的判断逻辑</td></tr>
+<tr><td>Location 更新也要考虑网络与背景执行</td><td><strong>Ch 5</strong> — Location-based Services</td></tr>
+</table>
+</div>
+
+</section>
+
+<section class="chapter" id="chapter-5">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 5 — Location-based Services</h1>
+  <p class="lede">这章补两题考卷原题：Q3(c) 的 foreground/background location 判断、Q4(a) 的 geocoding 应用。Slide 里 Question 系列共有 8 题没给答案（5.1、5.2、5.3、Review Questions 4–6），这份笔记全部补齐，包含 MyChild.com 那道 GPS 限制的情境题。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c5-s1">定位策略：GPS vs Wi-Fi/Cell</a></li>
+<li><a href="#c5-s2">耗电三要素</a></li>
+<li><a href="#c5-s3">Location Best Practices</a></li>
+<li><a href="#c5-s4">Permission 与 Foreground/Background</a> <span class="tag">考卷 Q3c</span></li>
+<li><a href="#c5-s5">Location Updates 流程</a></li>
+<li><a href="#c5-s6">Geocoding</a> <span class="tag">考卷 Q4a</span></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>Q3(c) 要求把 MyGOV 的两个定位使用情境分类成 <strong>foreground 或 background</strong> permission（各 3 分，共 6 分）——第 4 节结尾有满分答法。Q4(a) 要求「Relate the applications of geocoding to their relevance and benefits」（6 分）——第 6 节结尾有满分答法。</p>
+</div>
+
+<h2 id="c5-s1">1. 定位策略：GPS vs Wi-Fi/Cell</h2>
+
+<p>手机用户走到哪带到哪，位置感知能提供情境化的体验。Android 用 <strong>Google Play services 的 Location API</strong>。取得使用者位置有两种方式：</p>
+
+<div class="tw">
+<table>
+<tr><th>Type</th><th>GPS</th><th>Wi-Fi / Cell towers</th></tr>
+<tr><td><strong>Data Accuracy</strong></td><td>High</td><td>Low</td></tr>
+<tr><td><strong>Speed</strong></td><td>Slow</td><td>Fast</td></tr>
+<tr><td><strong>Power Consumption</strong></td><td>High</td><td>Low</td></tr>
+<tr><td><strong>Environment</strong></td><td>Outdoor</td><td>Indoor and outdoor</td></tr>
+</table>
+</div>
+
+<h2 id="c5-s2">2. 耗电三要素</h2>
+
+<p>定位耗电受三个面向影响：<strong>Accuracy · Frequency · Latency</strong>。</p>
+
+<div class="tw">
+<table>
+<tr><th>Priority</th><th>精度</th><th>硬体</th><th>耗电</th></tr>
+<tr><td><code>PRIORITY_HIGH_ACCURACY</code></td><td>最精确</td><td>GPS（+ Wi-Fi + cell）</td><td>High</td></tr>
+<tr><td><code>PRIORITY_BALANCED_POWER_ACCURACY</code></td><td>街区级（约 100m）</td><td>Wi-Fi 或 cell tower（可能用 GPS）</td><td>Less</td></tr>
+<tr><td><code>PRIORITY_LOW_POWER</code></td><td>城市级（约 10km）</td><td>主要靠 cell tower</td><td>Less</td></tr>
+<tr><td><code>PRIORITY_NO_POWER</code></td><td>——</td><td>接收其他 app 的位置资料</td><td>最省</td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="定位精度与耗电的取舍光谱">
+<defs>
+<linearGradient id="c5-grad" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0%" stop-color="var(--d-fill3)"/>
+<stop offset="100%" stop-color="var(--d-accent)"/>
+</linearGradient>
+</defs>
+<g font-family="inherit" font-size="11.5" fill="var(--d-text)">
+<text x="20" y="20" font-size="12" font-weight="700" fill="var(--d-muted)">耗电／精度 →</text>
+<rect x="20" y="34" width="660" height="14" rx="7" fill="url(#c5-grad)"/>
+
+<circle cx="70" cy="41" r="8" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-width="2"/>
+<text x="30" y="70" font-weight="700" font-size="11.5">No Power</text>
+<text x="20" y="86" font-size="10" fill="var(--d-muted)">接收别人的位置</text>
+
+<circle cx="270" cy="41" r="8" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-width="2"/>
+<text x="230" y="70" font-weight="700" font-size="11.5">Low Power</text>
+<text x="220" y="86" font-size="10" fill="var(--d-muted)">城市级 · 靠 cell tower</text>
+
+<circle cx="470" cy="41" r="8" fill="var(--d-fill)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="420" y="70" font-weight="700" font-size="11.5">Balanced Power</text>
+<text x="410" y="86" font-size="10" fill="var(--d-muted)">街区级 · Wi-Fi/cell</text>
+
+<circle cx="650" cy="41" r="9" fill="var(--d-accent)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="590" y="70" font-weight="700" font-size="11.5">High Accuracy</text>
+<text x="590" y="86" font-size="10" fill="var(--d-muted)">最精确 · 开 GPS</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>四个 priority 常数不是随便取名的，是<b>一条从省电到精确的光谱</b>——选的时候先问自己「这个功能真的需要知道使用者精确到几公尺的位置吗？」，答案是 No 就该往左边选，省下的电量很可观。</figcaption>
+</figure>
+
+<p><strong>Frequency</strong>：<code>setInterval()</code> 设定计算位置的间隔（背景用<strong>最大值</strong>、前景用<strong>小值</strong>）；<code>setFastestInterval()</code> 设定<strong>上限</strong>——其他 app 触发更新时你最快多久收一次，<strong>必须设，否则 UI 闪烁或资料溢出</strong>。<strong>Latency</strong>：<code>setMaxWaitTime()</code> 延迟位置交付，设成 <code>setInterval()</code> 的<strong>数倍</strong>（批次交付更省电）。</p>
+
+<pre><code>val locationRequest = LocationRequest.create()?.apply {
+    interval = 10000          // 10 秒
+    fastestInterval = 5000    // 上限 5 秒
+    maxWaitTime = 60 * 1000   // 最多延迟 1 分钟批次交付
+    priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+}</code></pre>
+
+<div class="box ok">
+<span class="lab">✅ 5.1 Question — 为每个情境选合适的定位模型（accuracy／frequency／latency）</span>
+<div class="tw">
+<table>
+<tr><th>App</th><th>Accuracy</th><th>Frequency</th><th>Latency</th></tr>
+<tr><td>a. 地图导航</td><td>High</td><td>高（短 interval）</td><td>低（即时交付）</td></tr>
+<tr><td>b. 天气 app</td><td>Low Power（城市级已够）</td><td>低（几小时一次）</td><td>高（可以延迟）</td></tr>
+<tr><td>c. 零售店邻近推播</td><td>Balanced Power</td><td>中等</td><td>可批次交付</td></tr>
+<tr><td>d. 运动追踪</td><td>High</td><td>高</td><td>低（要即时看到轨迹）</td></tr>
+</table>
+</div>
+<p>判断逻辑：<strong>使用者当下是不是正在盯着这个功能看</strong>（导航、运动追踪）就要 High + 高频 + 低延迟；<strong>只是背景性、周期性的资讯</strong>（天气、邻近推播）就该往省电的方向选。</p>
+</div>
+
+<h2 id="c5-s3">3. Location Best Practices</h2>
+
+<div class="tw">
+<table>
+<tr><th>#</th><th>做法</th><th>说明</th></tr>
+<tr><td>1</td><td><strong>Remove location updates</strong></td><td><code>onStart()</code>/<code>onResume()</code> → <code>requestLocationUpdates()</code>；<strong><code>onPause()</code>/<code>onStop()</code> → <code>removeLocationUpdates()</code></strong></td></tr>
+<tr><td>2</td><td><strong>Set timeouts</strong></td><td><code>setExpirationDuration()</code>（自上次呼叫起算）／<code>setExpirationTime()</code>（自系统上次开机起算）</td></tr>
+<tr><td>3</td><td><strong>Batch requests</strong></td><td>把多个请求打包，适合<strong>非前景</strong>用例（例如每十分钟算一次位置）</td></tr>
+<tr><td>4</td><td><strong>Passive location updates</strong></td><td>直接拿<strong>另一个前景 app</strong> 已经算好的位置，自己不用重新定位</td></tr>
+</table>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ 5.2 Question 2 &amp; 3</span>
+<div class="qa"><p class="q">2. 为什么要在 onStart() 或 onResume() 才开始请求位置？</p>
+<p class="a">这两个 callback 代表 activity <strong>即将变成可见／可互动</strong>，只有这时候才真正需要位置资料来驱动画面；提早在 <code>onCreate()</code> 就开始请求会在使用者还看不到画面时<strong>白白耗电</strong>，也可能在 activity 还没准备好接收资料时就收到位置更新。</p></div>
+<div class="qa"><p class="q">3. 该在哪个 lifecycle 方法关闭 Location service？</p>
+<p class="a"><strong><code>onPause()</code> 或 <code>onStop()</code></strong>——activity 不再可见或即将离开前景时，继续请求位置只是浪费电量，必须呼叫 <code>removeLocationUpdates()</code> 停止。</p></div>
+</div>
+
+<h2 id="c5-s4">4. Permission 与 Foreground/Background <span class="tag">考卷 Q3c</span></h2>
+
+<p>要用 Google Play services 的定位功能，须在 manifest 宣告权限：</p>
+
+<div class="tw">
+<table>
+<tr><th>Permission</th><th>说明</th></tr>
+<tr><td><strong>Coarse Location</strong></td><td>存取<strong>概略</strong>位置，精度约等同<strong>一个街区</strong></td></tr>
+<tr><td><strong>Fine Location</strong></td><td>存取<strong>精确</strong>位置</td></tr>
+<tr><td><strong>Background</strong></td><td>Android <strong>10 (API 29)</strong> 及以上才需要额外宣告</td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Foreground location 与 background location 的行为对比">
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">Foreground Location</text>
+<rect x="8" y="26" width="330" height="150" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<rect x="22" y="40" width="302" height="50" rx="6" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="34" y="60" font-weight="700" font-size="11.5">✓ 使用者正在看着这个画面</text>
+<text x="34" y="78" font-size="10.5" fill="var(--d-muted)">例：导航 app 的逐步指路</text>
+<rect x="22" y="98" width="302" height="30" rx="5" fill="var(--d-fill3)"/>
+<text x="34" y="118" font-size="11">分享方式：一次 / 预定期间</text>
+<rect x="22" y="136" width="302" height="30" rx="5" fill="var(--d-fill3)"/>
+<text x="34" y="156" font-size="11">UI 可见・不需要常驻通知</text>
+
+<text x="384" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">Background Location</text>
+<rect x="384" y="26" width="308" height="150" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<rect x="398" y="40" width="280" height="50" rx="6" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="410" y="60" font-weight="700" font-size="11.5">app 不在前景也要持续追踪</text>
+<text x="410" y="78" font-size="10.5" fill="var(--d-muted)">例：家庭位置共享、离家自动关灯</text>
+<rect x="398" y="98" width="280" height="30" rx="5" fill="var(--d-fill2)"/>
+<text x="410" y="118" font-size="11">分享方式：<strong>持续（constant）</strong></text>
+<rect x="398" y="136" width="280" height="30" rx="5" fill="var(--d-fill2)"/>
+<text x="410" y="156" font-size="11">UI <strong>不可见</strong>・<strong>需要常驻通知</strong></text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>判断的关键不是「这个功能重不重要」，而是<b>使用者用这个功能的当下，画面在不在眼前</b>。只要 app 不在前景也得继续追踪，就属于 background，Android 就要求你显示<b>持续存在的通知</b>，让使用者随时知道自己正被追踪。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q3(c) 满分答法</span>
+<div class="tw">
+<table>
+<tr><th>任务</th><th>分类</th><th>理由</th></tr>
+<tr><td>(i) 导航到最近的 UTC</td><td><strong>Foreground</strong></td><td>使用者主动发起、地图画面就在眼前，<strong>只在使用期间</strong>需要位置资料，不需要在使用者切走后继续追踪</td></tr>
+<tr><td>(ii) 附近政府活动的提醒</td><td><strong>Background</strong></td><td>使用者不会一直开着 MyGOV，这类提醒必须在 <strong>app 不在前景时仍持续侦测位置</strong>，靠近活动地点才推播通知</td></tr>
+</table>
+</div>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>Navigating to the nearest UTC requires foreground location, because the user actively initiated the task and the map is visible on screen for the duration of that single use. Alerting users about nearby government events requires background location, because the app must keep monitoring the user's position even when it is not open, which under Android's location permission model also requires showing a persistent notification to the user.</p>
+</div>
+
+<h2 id="c5-s5">5. Location Updates 流程</h2>
+
+<figure>
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="取得位置更新的完整流程">
+<defs>
+<marker id="c5-arL" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="11.5" fill="var(--d-text)">
+<rect x="290" y="8" width="120" height="34" rx="17" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="330" y="30" font-weight="700" font-size="12">START</text>
+
+<line x1="350" y1="42" x2="350" y2="62" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c5-arL)"/>
+<rect x="260" y="64" width="180" height="40" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="275" y="89" font-size="11.5">Connect to location service</text>
+
+<line x1="350" y1="104" x2="350" y2="124" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c5-arL)"/>
+<rect x="260" y="126" width="180" height="40" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="285" y="151" font-size="11.5">Make a location request</text>
+
+<line x1="350" y1="166" x2="350" y2="186" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c5-arL)"/>
+<path d="M350,186 L410,216 L350,246 L290,216 Z" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="316" y="220" font-size="10.5">Location changed?</text>
+
+<line x1="410" y1="216" x2="470" y2="216" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c5-arL)"/>
+<text x="418" y="208" font-size="10.5" fill="var(--d-accent)" font-weight="700">Yes</text>
+<rect x="480" y="196" width="120" height="40" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="510" y="221" font-size="11.5">Update UI</text>
+
+<path d="M540,196 L540,110 L432,110" fill="none" stroke="var(--d-line)" stroke-width="1.3" marker-end="url(#c5-arL)"/>
+<text x="440" y="102" font-size="9.5" fill="var(--d-muted)">循环等待下一次变化</text>
+
+<line x1="350" y1="246" x2="350" y2="252" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<text x="270" y="262" font-size="10.5" fill="var(--d-accent)" font-weight="700">No → Pause? Yes → Stop location updates → STOP</text>
+
+<rect x="8" y="8" width="140" height="70" rx="8" fill="none" stroke="var(--d-line)" stroke-dasharray="3 3"/>
+<text x="18" y="28" font-size="10" fill="var(--d-muted)">对应到 Best Practice</text>
+<text x="18" y="44" font-size="10" fill="var(--d-muted)">「①Remove location」</text>
+<text x="18" y="60" font-size="10" fill="var(--d-muted)">就是这里的 Pause 分支</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>这整个流程<b>不是写完一次就结束</b>，「Location changed」判断后会一路循环，直到判断为「Pause」（对应 <code>onPause()</code>/<code>onStop()</code>）才真正停止。这跟第 3 节的 Best Practice ① 是同一件事，只是画成了流程图。</figcaption>
+</figure>
+
+<p><strong>Mock Location</strong>：测试时用假的 GPS 资料（不用真的跑到户外），透过 <strong>DDMS 注入位置资料给 AVD（模拟器）</strong>来测试不同定位场景。</p>
+
+<h2 id="c5-s6">6. Geocoding <span class="tag">考卷 Q4a</span></h2>
+
+<p><strong>Geocoding = 把地理位置（坐标）转换成地址</strong>（反过来是 reverse geocoding）。</p>
+
+<p><strong>好处与应用</strong>：</p>
+<ol>
+<li><strong>补偿模糊/错误的地址</strong>——拼错或不精确的地址仍能对应到正确位置</li>
+<li><strong>地址会变，坐标不会</strong>——街道改名或门牌重编后，坐标仍然有效</li>
+<li><strong>验证地址</strong>——把地址资讯与地理编码整合对齐来核实真实性</li>
+</ol>
+
+<p>可能的错误：<strong>没有提供位置资料 · 无效的经纬度 · 没有可用的 geocoder · 找不到地址</strong>。</p>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q4(a) 满分答法</span>
+<p><strong>「Relate the applications of geocoding to their relevance and benefits for users of the MyGOV Malaysia mobile app」（6 marks，写 3 点）</strong></p>
+<ol>
+<li><strong>自动补正申请地址</strong>——使用者在申请表单填写住址时，若拼写不精确或格式不一致，geocoding 能协助比对与校正，减少因地址错误导致申请被退件或补件的情况。</li>
+<li><strong>协助定位最近的政府办事处</strong>——将「使用者目前 GPS 坐标」转换成可读地址，或反过来把「附近的 Urban Transformation Centre」地址转成坐标显示在地图上，让使用者快速找到最近的实体据点。</li>
+<li><strong>让长期保存的纪录保持准确</strong>——申请纪录里若只存文字地址，日后街道改名或门牌重编会让纪录「过时」；改存对应的坐标，即使地址文字改变，纪录仍能透过坐标準确定位，方便政府长期追踪与稽核。</li>
+</ol>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>Geocoding converts a geographic location into an address, and reverse geocoding does the opposite. For MyGOV, it can auto-correct or validate addresses entered in application forms, convert the user's GPS coordinates into a readable address (or vice versa) to help them locate the nearest Urban Transformation Centre, and keep long-term records accurate even if street names or addresses later change, since the underlying coordinates remain stable.</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ 5.3 ＆ Review Questions</span>
+<div class="qa"><p class="q">5.3-1. 哪些因素会影响 LBS 的精确度？</p>
+<p class="a"><b>定位来源的选择</b>（GPS vs Wi-Fi/cell，精度天差地远）、<b>环境</b>（室内/高楼/隧道会削弱 GPS 讯号）、<b>priority 设定</b>（选了省电模式精度自然下降）、<b>装置硬体品质</b>与<b>卫星/基地台的可见数量</b>。</p></div>
+<div class="qa"><p class="q">5.3-2. 评论：「为 location-based app 建立最佳效能模型很重要」</p>
+<p class="a"><b>同意，但「最佳」要按用途量身打造，不是单一标准。</b>不同 app 的「最佳」定义不同——导航 app 的最佳模型是高精度、低延迟；天气 app 的最佳模型反而是省电优先。建立模型的价值在于<b>提前在 accuracy／frequency／latency 三个维度上做出符合该 app 使用情境的权衡</b>，而不是无脑全部拉到最高精度。</p></div>
+<div class="qa"><p class="q">Review-4. 评论：「确保精确度最好的方法是用真实装置测试」</p>
+<p class="a"><b>大致同意，但要补充。</b>Mock location／模拟器测试能快速覆盖多种情境（不同坐标、不同精度）且不受实际环境限制，适合<b>开发初期</b>快速迭代；但<b>模拟器无法真实反映硬体差异、室内讯号遮蔽、多路径反射等真实世界的干扰</b>，所以正式发布前仍必须在<b>不同品牌、不同环境的真实装置</b>上验证，两者应该搭配使用，不是二选一。</p></div>
+<div class="qa"><p class="q">Review-5. 位置感知如何提升使用者体验？（6 marks，需举例）</p>
+<p class="a">位置感知让 app 能<b>根据使用者当下所在环境提供情境化的内容</b>，而不是千篇一律的资讯——省去使用者手动输入位置的麻烦，也能提供只有「知道你在哪」才做得到的服务。<b>例子</b>：MyGOV 侦测到使用者目前在某个州属，自动把「附近的 UTC 据点」「该州属专属的政府活动」排在服务清单最前面，使用者不需要自己搜寻或切换地区设定，就能立刻看到跟自己最相关的内容，大幅缩短找到所需服务的时间。</p></div>
+<div class="qa"><p class="q">Review-6. MyChild.com（GPS 儿童追踪）：描述 GPS 的三个限制（6 marks），并建议一个克服限制的技术（4 marks）</p>
+<p class="a"><b>三个限制：</b>①<b>室内/建筑物内收讯不良</b>——GPS 依赖卫星讯号，孩童在室内（学校、商场）时精度大幅下降甚至完全收不到。②<b>耗电量高</b>——持续开启 GPS 定位会让追踪装置的电池很快耗尽，对需要长时间配戴的儿童追踪装置尤其不利。③<b>首次定位慢（冷启动）</b>——GPS 需要时间锁定足够的卫星才能算出位置，紧急情况下（例如孩童走失）这个延迟可能造成家长焦虑甚至延误。<br><b>克服技术：</b>采用<b>Fused Location Provider</b>，结合 GPS、Wi-Fi 与基地台三种来源——户外用 GPS 保持高精度，室内自动切换成 Wi-Fi/cell 定位以维持可用性，同时可依情境动态调整 priority（例如平时用 Balanced Power 省电，孩童离开安全区域时才切到 High Accuracy），在精度、电量与室内可用性之间取得平衡。</p></div>
+</div>
+
+<hr>
+
+<h2 id="c5-mislead">⚠️ Slide 讲得不完整的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更完整的理解</th><th>考试怎么办</th></tr>
+<tr><td>Location Strategies 表</td><td>GPS vs Wi-Fi/cell 讲成非此即彼的二选一</td><td>实务上 Android 用 <strong>Fused Location Provider</strong>，会<strong>同时综合</strong>多种来源自动挑选当下最合适的，不是开发者手动二选一</td><td>考试照表格答两者的特性对照；被问「实务上怎么做」可以提 Fused Location Provider</td></tr>
+</table>
+</div>
+
+<h2 id="c5-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>Fine Location</td><td>精确定位权限</td><td>取得精确位置</td></tr>
+<tr><td>Coarse Location</td><td>概略定位权限</td><td>取得约街区等级的位置</td></tr>
+<tr><td>Foreground location</td><td>前景定位</td><td>UI 可见时使用，一次或预定期间</td></tr>
+<tr><td>Background location</td><td>背景定位</td><td>app 不在前景也持续追踪，需常驻通知</td></tr>
+<tr><td>Geocoding</td><td>地理编码</td><td>坐标转地址</td></tr>
+<tr><td>Reverse geocoding</td><td>反向地理编码</td><td>地址转坐标</td></tr>
+<tr><td>Fused Location Provider</td><td>融合定位提供者</td><td>综合 GPS/Wi-Fi/cell 自动选择来源</td></tr>
+</table>
+</div>
+
+<h2 id="c5-cheat">Cheat Sheet</h2>
+<p><strong>GPS</strong>：准／慢／耗电／限户外　　<strong>Wi-Fi/Cell</strong>：不准／快／省电／室内外皆可</p>
+<p><strong>耗电三要素</strong>：Accuracy(priority常数)／Frequency(setInterval/setFastestInterval)／Latency(setMaxWaitTime)</p>
+<p><strong>4 best practices</strong>：onStart/onResume 请求，onPause/onStop 移除／设 timeout／batch requests／passive updates</p>
+<p><strong>★ Permission</strong>：Coarse(街区级)／Fine(精确)／Background(API29+)</p>
+<p><strong>★ Foreground</strong>：UI可见／一次或预定期间／不需常驻通知　　<strong>Background</strong>：UI不可见／持续／需常驻通知</p>
+<p><strong>Location Updates 流程</strong>：连线→请求→变化判断（循环）→Pause判断→停止</p>
+<p><strong>★ Geocoding</strong>＝坐标转地址；好处：补正地址／地址会变坐标不变／验证地址</p>
+
+<hr>
+
+<h2 id="c5-practice">Practice</h2>
+
+<h3>A. MCQ (5)</h3>
+<ol>
+<li>Which location source is more accurate but consumes more battery and only works reliably outdoors?<br>(A) Wi-Fi (B) Cell tower (C) GPS (D) Bluetooth</li>
+<li>MyGOV wants to alert users about nearby events even when the app is closed. Which permission type is required?<br>(A) Coarse only (B) Fine only (C) Background (D) No permission needed</li>
+<li>Which method sets the maximum delay before a batch of location updates is delivered?<br>(A) setInterval() (B) setFastestInterval() (C) setMaxWaitTime() (D) setPriority()</li>
+<li>Converting a set of GPS coordinates into a readable street address is called:<br>(A) reverse geocoding (B) geocoding (C) location fusing (D) passive location update</li>
+<li>Where should removeLocationUpdates() be called?<br>(A) onCreate() (B) onStart() (C) onPause()/onStop() (D) onDestroy() only</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw"><table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>C</strong></td><td>GPS is high-accuracy, high-power, and only reliable outdoors — the opposite of Wi-Fi/cell.</td></tr>
+<tr><td>2</td><td><strong>C</strong></td><td>Monitoring location while the app is not in the foreground requires background location permission.</td></tr>
+<tr><td>3</td><td><strong>C</strong></td><td>setMaxWaitTime() controls how long updates can be delayed before batch delivery.</td></tr>
+<tr><td>4</td><td><strong>A</strong></td><td>Reverse geocoding goes from coordinates to address; geocoding goes the other way.</td></tr>
+<tr><td>5</td><td><strong>C</strong></td><td>Updates should be removed once the activity is no longer visible, mirroring where they were requested (onStart/onResume).</td></tr>
+</table></div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Explain the difference between foreground and background location, and why background location requires a persistent notification. <em>(6 marks)</em></li>
+<li>Describe three limitations of GPS and suggest one technique to overcome them. <em>(10 marks)</em></li>
+<li>Relate the applications of geocoding to their relevance and benefits for a government service app. <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> Foreground location is used while the screen is visible to the user, typically for a single request or a predefined period, such as turn-by-turn navigation. Background location continues even when the app is not visible, such as continuous family location sharing. Android requires a persistent notification for background location because the user is not actively looking at the app, so the notification is the only way to keep them aware that their location is still being tracked, preserving transparency and user trust.</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> Three limitations: (1) <b>poor indoor reception</b> — GPS relies on satellite signals, which are heavily attenuated indoors. (2) <b>high power consumption</b> — continuous GPS use drains the battery quickly. (3) <b>slow initial fix (cold start)</b> — GPS needs time to lock onto enough satellites before it can compute a position, causing delay when it matters most. A technique to overcome these: use a <b>Fused Location Provider</b> combining GPS, Wi-Fi and cell tower data, so the app automatically falls back to Wi-Fi/cell indoors and can adjust its accuracy priority based on context to balance power and precision.</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> Geocoding converts coordinates into addresses (and reverse geocoding does the opposite). For a government service app, it can auto-correct or validate addresses entered on application forms, help users locate the nearest physical service centre by converting their current coordinates into a readable address or vice versa, and keep historical records accurate over time even if street names or addresses later change, since the underlying coordinates remain stable.</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>Choose High Accuracy, Balanced Power, Low Power or No Power for: (a) a step-tracking fitness app (b) a weather widget updating once daily (c) a retail app alerting users within 200m of a store.</li>
+<li>Explain why a location-tracking app should call requestLocationUpdates() in onStart() rather than onCreate().</li>
+<li>MyGOV's "find nearest UTC" feature currently keeps requesting location updates even after the user navigates away from that screen. Identify the bug and the fix.</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> (a) <b>High Accuracy</b> — precise tracking needed continuously during activity. (b) <b>Low Power</b> — city-level accuracy is sufficient for weather. (c) <b>Balanced Power</b> — block-level accuracy is enough to detect proximity to a store.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> onCreate() runs once during initial setup, before the activity is necessarily visible to the user, so requesting location there could start draining battery before it's actually needed. onStart() fires right as the activity becomes visible, so location updates begin exactly when the user can actually see and benefit from them — matching the corresponding cleanup in onStop()/onPause().</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> The bug: <code>removeLocationUpdates()</code> was never called when the screen is no longer visible, so location tracking (and the battery drain that comes with it) continues unnecessarily. The fix: call <code>removeLocationUpdates()</code> inside <code>onPause()</code> or <code>onStop()</code>, mirroring where <code>requestLocationUpdates()</code> was called in <code>onStart()</code>/<code>onResume()</code>.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>Explain why "passive location updates" can be a genuinely useful battery-saving technique rather than just a workaround, using a concrete scenario. <em>(6 marks)</em></li>
+<li>A model of "best performance" for a navigation app and for a weather app would look completely different. Explain why building a single universal location model for every app would be the wrong approach. <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> Passive location updates let an app receive location data that <b>another foreground app has already computed</b>, instead of activating its own GPS/Wi-Fi lookup. This is genuinely useful, not just a workaround, whenever an app's own need for location is secondary or low-priority — for example, a background analytics feature that just wants a rough sense of the user's city doesn't need to trigger its own location fix; if a navigation app happens to be actively running and already computing high-accuracy location, the passive listener gets that data essentially for free, avoiding a second, redundant battery cost for the same physical location.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> Accuracy, frequency and latency each have a real cost in battery and each app's usage pattern justifies a different point on that trade-off. A navigation app is used actively, continuously, and its core value depends on precise, low-latency positioning — under-provisioning accuracy directly breaks the feature. A weather app is used passively and infrequently, and its value doesn't change whether the location is accurate to 10 metres or 10 kilometres — over-provisioning accuracy here only wastes battery for no benefit. A single universal model would either waste battery for apps like weather, or under-serve apps like navigation; the "right" model is a function of how the location data is actually used, not a fixed technical ideal.</p>
+</div>
+
+<h2 id="c5-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>展开在哪一章</th></tr>
+<tr><td>Runtime permission 请求流程</td><td><strong>Ch 1</strong> — Permission 机制的基础规则</td></tr>
+<tr><td>Location update 请求／移除跟 lifecycle 绑定</td><td><strong>Ch 3</strong> — Activity Lifecycle（onStart/onResume/onPause/onStop）</td></tr>
+<tr><td>Foreground Service 用来做持续背景工作</td><td><strong>Ch 4.2</strong> — 背景工作的四选一决策</td></tr>
+<tr><td>相机也有类似的权限判断逻辑</td><td><strong>Ch 6</strong> — Camera permission</td></tr>
+</table>
+</div>
+
+</section>
+
+<section class="chapter" id="chapter-6">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 6 — Specialized Instruments and Devices</h1>
+  <p class="lede">这章是<strong>考卷 Q4(b) 的原始出处</strong>——「处理相机请求的两种方式」＋「哪种最适合 MyGOV」，共 9 分。Slide 里穿插了几张真实手机的传感器阵列照片（Pixel、iPhone X 的镜头孔布局），这份笔记把这些照片背后的意义讲出来，而不只是当装饰图带过。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c6-s1">Camera：怎么处理相机请求</a> <span class="tag">考卷 Q4b</span></li>
+<li><a href="#c6-s2">相机能做的延伸应用</a></li>
+<li><a href="#c6-s3">Audio ＆ MediaPlayer</a></li>
+<li><a href="#c6-s4">三大类硬体感测器</a></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>Q4(b)(i) 要求描述<strong>两种</strong>处理相机请求的方式（6 分），Q4(b)(ii) 要求判断哪一种最适合 MyGOV 并说明理由（3 分）——第 1 节结尾有完整满分答法。</p>
+</div>
+
+<h2 id="c6-s1">1. Camera：怎么处理相机请求 <span class="tag">考卷 Q4b</span></h2>
+
+<p>Slide 用一个决策树来决定该怎么取得照片：</p>
+
+<figure>
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="决定如何处理相机功能的决策树">
+<defs>
+<marker id="c6-arC" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<rect x="8" y="90" width="180" height="56" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="22" y="112" font-size="12">相机是<strong>必须</strong>的功能吗？</text>
+<text x="22" y="130" font-size="10" fill="var(--d-muted)">（app 核心功能是否离得开它）</text>
+
+<rect x="230" y="14" width="180" height="56" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="244" y="36" font-size="12">需要特殊处理吗？</text>
+<text x="244" y="54" font-size="10" fill="var(--d-muted)">（自订预览、滤镜、扫描框……）</text>
+
+<line x1="98" y1="90" x2="98" y2="56" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<line x1="98" y1="56" x2="228" y2="42" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c6-arC)"/>
+<text x="120" y="60" font-size="10.5" fill="var(--d-accent)" font-weight="700">Yes</text>
+
+<rect x="8" y="180" width="180" height="50" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="22" y="200" font-weight="700" font-size="12.5">从 Gallery 取相片</text>
+<text x="22" y="217" font-size="10" fill="var(--d-muted)">不用碰相机功能</text>
+<line x1="98" y1="146" x2="98" y2="178" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c6-arC)"/>
+<text x="106" y="166" font-size="10.5" fill="var(--d-accent)" font-weight="700">No</text>
+
+<line x1="410" y1="42" x2="470" y2="42" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c6-arC)"/>
+<text x="418" y="32" font-size="10.5" fill="var(--d-accent)" font-weight="700">Yes</text>
+<rect x="480" y="14" width="200" height="56" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="494" y="36" font-weight="700" font-size="12.5">自己写 camera 模组</text>
+<text x="494" y="54" font-size="10" fill="var(--d-muted)">CameraX / Camera2 API</text>
+
+<line x1="320" y1="70" x2="320" y2="110" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<line x1="320" y1="110" x2="480" y2="150" stroke="var(--d-accent)" stroke-width="1.7" marker-end="url(#c6-arC)"/>
+<text x="330" y="105" font-size="10.5" fill="var(--d-muted)">No</text>
+<rect x="480" y="122" width="200" height="56" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="494" y="144" font-weight="700" font-size="12.5">用现有的 camera app</text>
+<text x="494" y="162" font-size="10" fill="var(--d-muted)">透过 Intent 呼叫</text>
+
+</g>
+</svg>
+<figcaption><b>看这里：</b>三条路各自代表<b>不同的开发成本与权限代价</b>——从 Gallery 取现成的照片最省事；用现有 camera app（Intent）不用写相机逻辑，也<b>不需要 CAMERA 权限</b>；只有真的需要自订预览或即时处理（例如扫描文件时的边框辨识）才值得付出自己写相机模组的成本。</figcaption>
+</figure>
+
+<div class="tw">
+<table>
+<tr><th></th><th>用现有的 camera app（Intent）</th><th>自己写 camera 功能</th></tr>
+<tr><td>实作难度</td><td><strong>简单</strong> — 用 Intent class</td><td><strong>复杂</strong> — CameraX 或 Camera2 API</td></tr>
+<tr><td>做什么</td><td>从 camera app <strong>拿回一张照片</strong></td><td><strong>自己建立 camera preview</strong></td></tr>
+<tr><td>权限</td><td><strong>不需要 CAMERA 权限</strong></td><td><strong>需要请求 CAMERA 权限</strong></td></tr>
+</table>
+</div>
+
+<p><strong>用 Intent 拍照的三步流程</strong>：① 建立 Intent，用 <code>MediaStore.ACTION_IMAGE_CAPTURE</code> 或 <code>MediaStore.ACTION_VIDEO_CAPTURE</code> ② 用 <code>startActivity()</code> 执行 ③ 用 <code>onActivityResult()</code>（新版用 <code>ActivityResultContracts.TakePicture()</code>）接收结果。</p>
+
+<pre><code>val photoUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
+val cameraLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.TakePicture()
+) { success -> if (success) { imageUri.value = photoUri } }</code></pre>
+
+<p><strong>Manifest 宣告</strong>：</p>
+<pre><code>&lt;uses-feature android:name="android.hardware.camera" /&gt;  &lt;!-- 阻止无相机装置安装本 app --&gt;
+&lt;uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" /&gt;
+&lt;uses-permission android:name="android.permission.RECORD_AUDIO" /&gt;
+&lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /&gt;</code></pre>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q4(b) 满分答法</span>
+<p><strong>(i) 描述两种处理相机请求的方式（6 marks，各约 3 分）</strong></p>
+<ol>
+<li><strong>用现有的 camera app（透过 Intent）</strong>——建立一个带 <code>ACTION_IMAGE_CAPTURE</code> 或 <code>ACTION_VIDEO_CAPTURE</code> 的 Intent，呼叫 <code>startActivity()</code> 把拍照工作<strong>交给装置上已经安装好的相机 app</strong> 处理，再透过 callback 拿回拍好的照片或影片。实作简单、<strong>不需要请求 CAMERA 权限</strong>，因为实际拍照的是别的 app。</li>
+<li><strong>自己写 camera 功能</strong>——用 <strong>CameraX 或 Camera2 API</strong> 在 app 内建立自己的 camera preview 与拍摄逻辑，能完全客制化介面（例如加扫描框、即时滤镜），但实作复杂，且必须向使用者<strong>请求 CAMERA 权限</strong>。</li>
+</ol>
+<p><strong>(ii) 判断 MyGOV 该用哪一种，附理由（3 marks）</strong></p>
+<p>MyGOV 最适合<strong>用现有的 camera app（Intent 方式）</strong>。理由：MyGOV 拍照的用途通常是<strong>拍摄证件或文件照片上传</strong>（例如驾照更新的证明文件），不需要任何特殊的即时影像处理或自订预览；用 Intent 方式<strong>不必请求 CAMERA 权限</strong>，能降低使用者对隐私的疑虑、提升对政府 app 的信任感，同时开发成本更低，还能直接沿用各厂牌手机自家已经优化过的相机体验。</p>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>A mobile app can handle a camera request either by delegating to the device's existing camera app through an intent — using ACTION_IMAGE_CAPTURE or ACTION_VIDEO_CAPTURE, which requires no CAMERA permission since the other app performs the actual capture — or by building its own camera functionality with CameraX or Camera2, which gives full control over the preview and capture experience but requires requesting the CAMERA permission and considerably more implementation effort. For MyGOV, the intent-based approach is most suitable, since photographing supporting documents needs no custom capture logic, and avoiding the CAMERA permission reduces the privacy footprint expected of a government app.</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ 6.1 Questions</span>
+<div class="qa"><p class="q">1. 评论：「你必须取得权限才能在 app 里启用相机功能」</p>
+<p class="a"><b>不完全正确。</b>只有<b>自己写相机功能</b>（用 CameraX/Camera2）才需要请求 CAMERA 权限；如果是<b>透过 Intent 呼叫现有的 camera app</b>拍照，实际拍照的动作是别的 app 做的，自己的 app 完全不需要请求 CAMERA 权限。</p></div>
+<div class="qa"><p class="q">2. 怎么防止 app 被安装到没有相机的装置上？</p>
+<p class="a">在 manifest 加上 <code>&lt;uses-feature android:name="android.hardware.camera" /&gt;</code>——预设 <code>required</code> 为 true，Play Store 会自动过滤掉没有相机硬体的装置，阻止它们看到或安装这个 app。</p></div>
+<div class="qa"><p class="q">3. 不用写太多额外 code 就能启用拍照/录影功能的快速做法是什么？</p>
+<p class="a"><b>用 Intent 呼叫现有的 camera app</b>——建 Intent、<code>startActivity()</code>、接收结果三步就完成，不需要自己实作 camera preview 或处理硬体细节。</p></div>
+</div>
+
+<h2 id="c6-s2">2. 相机能做的延伸应用</h2>
+
+<p>手机相机不只是拍照，还能：<strong>保险理赔（拍摄事故照片）、支票存款（拍摄支票影像辨识）、搜寻（Google Lens 用相机辨识物件/地标）、翻译（对准文字即时翻译）、视力检测、扫描文件（自动侦测文件边缘并裁切）、辨识物件与文字、室内导航（Visual Positioning System，靠比对周遭影像定位）</strong>。</p>
+
+<p><strong>Decode a scaled image</strong>：一次显示太多图片会让 app 耗尽记忆体（out of memory）；图片应该<strong>缩放到符合目标 view 的尺寸</strong>再显示，不要用原始解析度硬塞进小小的缩图格。</p>
+
+<p><strong>Barcode Scanning</strong>：ML Kit 提供的条码扫描 API，<strong>在装置上执行、不需要网络</strong>，支援 2D 格式（QR Code）。</p>
+
+<h2 id="c6-s3">3. Audio ＆ MediaPlayer</h2>
+
+<p>Android 为不同用途维持<strong>各自独立的 audio stream</strong>：播放音乐、闹钟、通知、来电铃声、系统音效、通话音量……大多数这类 stream 是<strong>系统事件专用</strong>的，app 开发者主要用的是 <strong><code>STREAM_MUSIC</code></strong>——用于背景音乐或音效。</p>
+
+<div class="tw">
+<table>
+<tr><th>Class</th><th>用途</th></tr>
+<tr><td><strong>MediaPlayer</strong></td><td>播放声音与影片</td></tr>
+<tr><td><strong>AudioManager</strong></td><td>管理装置上的音源与音讯输出</td></tr>
+</table>
+</div>
+
+<p>MediaPlayer 能播放本地与外部（串流）档案，支援 <strong>Android 平台内建的 codec，以及装置特有的 codec</strong>——建议使用 <strong>core media format</strong>：Audio（.3gp .mp3 .mp4 .mid .wav .ogg）、Picture（.jpg .gif .png .bmp）、Video（.3gp .mp4）。</p>
+
+<figure>
+<svg viewBox="0 0 700 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MediaPlayer 从建立到释放的基本流程">
+<defs>
+<marker id="c6-arP" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="11.5" fill="var(--d-text)">
+<rect x="8" y="30" width="130" height="50" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="20" y="50" font-weight="700" font-size="11.5">建立 + setDataSource</text>
+<text x="20" y="66" font-size="9.5" fill="var(--d-muted)">指定播放来源</text>
+
+<line x1="142" y1="55" x2="180" y2="55" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c6-arP)"/>
+
+<rect x="190" y="30" width="110" height="50" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="202" y="50" font-weight="700" font-size="11.5">prepare()</text>
+<text x="202" y="66" font-size="9.5" fill="var(--d-muted)">准备播放</text>
+
+<line x1="304" y1="55" x2="342" y2="55" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c6-arP)"/>
+
+<rect x="352" y="30" width="130" height="50" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="364" y="50" font-weight="700" font-size="11.5">start() / pause()</text>
+<text x="364" y="66" font-size="9.5" fill="var(--d-muted)">播放／暂停，可来回切换</text>
+
+<line x1="486" y1="55" x2="524" y2="55" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c6-arP)"/>
+
+<rect x="534" y="30" width="150" height="50" rx="7" fill="var(--d-warn-bg)" fill="#fdf6e3" stroke="var(--d-warn)" stroke="#9a6b00" stroke-width="1.6"/>
+<text x="548" y="50" font-weight="700" font-size="11.5">release()</text>
+<text x="548" y="66" font-size="9.5" fill="var(--d-muted)">离开画面时<b>必须</b>呼叫</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>最后一步<b>不是自动发生的</b>——MediaPlayer 会占用真实的系统资源（硬体解码器等），如果 Composable 离开画面时忘了呼叫 <code>release()</code>，这份资源会一直被占着不放，这是初学者最常忘记的一步。</figcaption>
+</figure>
+
+<pre><code>val mediaPlayer = remember {
+    MediaPlayer().apply { setDataSource(audioUrl); prepare() }
+}
+Button(onClick = {
+    if (mediaPlayer.isPlaying) { mediaPlayer.pause() } else { mediaPlayer.start() }
+}) { Text(if (isPlaying) "Pause" else "Play") }
+
+DisposableEffect(Unit) {
+    onDispose { mediaPlayer.release() }   // Composable 离开画面时释放资源
+}</code></pre>
+
+<p><strong>权限</strong>：串流网络内容要宣告 <code>INTERNET</code>；要防止播放期间萤幕变暗或处理器休眠要宣告 <strong><code>WAKE_LOCK</code></strong>。</p>
+
+<div class="box ok">
+<span class="lab">✅ 6.2 Questions</span>
+<div class="qa"><p class="q">1. 评论：「你可以在 Android app 里自由使用任何 media codec」</p>
+<p class="a"><b>不正确。</b>MediaPlayer 只支援 <b>Android 平台本身提供的 codec，以及该装置厂商额外支援的 codec</b>，不是想用什么格式都行；官方建议使用 <b>core media format</b>（如 mp3、mp4、jpg、png）以确保跨装置的相容性。</p></div>
+<div class="qa"><p class="q">2. <code>android.permission.WAKE_LOCK</code> 的用途？</p>
+<p class="a">让播放器应用程式能<b>防止萤幕变暗或处理器进入休眠</b>，确保媒体（尤其是影片）能在背景持续播放或萤幕保持开启，不会因为系统的省电机制而中断。</p></div>
+<div class="qa"><p class="q">3. 用来移除 MediaPlayer 物件所占用资源的方法是？</p>
+<p class="a"><code><b>release()</b></code>。</p></div>
+</div>
+
+<h2 id="c6-s4">4. 三大类硬体感测器</h2>
+
+<div class="tw">
+<table>
+<tr><th>类别</th><th>量什么</th><th>有哪些</th></tr>
+<tr><td><strong>Motion</strong></td><td>三轴的<strong>加速度与旋转力</strong></td><td><strong>Accelerometer</strong>（速度变化率，不含重力，感测轴向）· <strong>Gravity sensor</strong>（重力方向与强度）· <strong>Gyroscope</strong>（协助判断手机朝向）· <strong>Rotational vector</strong>（转动动作）</td></tr>
+<tr><td><strong>Environmental</strong></td><td>环境参数</td><td><strong>Barometer</strong>（大气压；<strong>提供高度资料帮 GPS 更快锁定</strong>）· <strong>Photometer/光感</strong>（环境光量）· <strong>Thermometer</strong>（机内温度，防过热）</td></tr>
+<tr><td><strong>Position</strong></td><td>装置的<strong>物理位置</strong></td><td><strong>Orientation sensor</strong>（相对正交座标的朝向）· <strong>Magnetometer</strong>（相对<strong>磁北</strong>的方位）</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+<span class="lab">💡 补充：Slide 里的真实例子，值得记住</span>
+<p>Slide 在 Motion sensors 那段配了一张<strong>赛车游戏截图</strong>——这类游戏常常用<strong>加速度计 + 陀螺仪</strong>让玩家用「倾斜手机」来转向，不需要虚拟方向盘，这正是「感测器提供独特体验」的具体例子。</p>
+<p>另外 Slide 也放了两张真实手机的镜头孔布局图（Pixel 与 iPhone X）：两者都在小小的萤幕缺口里塞进 <strong>Infrared camera、Flood Illuminator、Dot Projector</strong> 三个元件组成的<strong>结构光 3D 感测系统</strong>，专门用来做 <strong>Face Unlock（人脸解锁）</strong>；Pixel 那张还多了一个 <strong>Soli Radar Sensor</strong>，用来做 <strong>Motion Sense</strong>——不用碰萤幕，隔空挥手就能切歌或关掉闹钟。这些都不是本章列的三大类感测器之一，而是<strong>多种感测器组合起来实现新功能</strong>的真实案例，回答「感测器如何提供独特体验」这类题目时是很好的素材。</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ 6.3 Question — 感测器如何提供独特体验？（5 marks，需举例）</span>
+<p>手机内建的感测器让 app 能<strong>感知装置本身的物理状态</strong>（动作、朝向、环境），做到纯软体做不到的互动方式。<strong>例子</strong>：一个健身 app 利用<strong>加速度计</strong>侦测使用者走路/跑步时的规律震动模式来<strong>自动计步</strong>，不需要使用者手动记录；也可以搭配<strong>陀螺仪</strong>判断手机（或手腕）转动的角度来辨识特定运动动作（例如伏地挺身的次数）。这种「装置自己知道使用者在做什么动作」的体验，是只靠触控萤幕互动的 app 做不到的，也正是感测器为行动装置带来的独特价值。</p>
+</div>
+
+<hr>
+
+<h2 id="c6-mislead">⚠️ Slide 讲得不完整的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更完整的理解</th><th>考试怎么办</th></tr>
+<tr><td>Camera 决策树</td><td>三个选项并列呈现，像是权重相同的三选一</td><td>实际权衡的核心只有<strong>一个问题：需不需要客制化</strong>——只要不需要，Intent 永远是成本最低的选项，「从 Gallery 取」只是「不需要相机」这个更前面的判断分支</td><td>回答时先判断「是否要拍新照片」，再判断「要不要客制化」，两层判断说清楚比死记三个选项更稳</td></tr>
+<tr><td>MediaPlayer codec 支援</td><td>只说「平台提供的 + 装置特定的」，没有具体说明为什么装置之间会不同</td><td>装置特定的 codec 差异主要来自<strong>硬体解码器</strong>——不同 SoC 厂商内建的硬体解码能力不同，这也是为什么官方建议用 core media format：那些格式几乎所有装置都有对应的硬体或软体解码支援</td><td>照 slide 答「平台 + 装置特定」即可，能补充硬体解码器差异会加分</td></tr>
+</table>
+</div>
+
+<h2 id="c6-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>MediaStore.ACTION_IMAGE_CAPTURE</td><td>拍照意图动作</td><td>用 Intent 呼叫现有相机 app 拍照的 action</td></tr>
+<tr><td>CameraX / Camera2</td><td>相机 API</td><td>自己写相机功能时使用的 API</td></tr>
+<tr><td>Core media format</td><td>核心媒体格式</td><td>官方建议使用、跨装置相容性最好的格式</td></tr>
+<tr><td>WAKE_LOCK</td><td>唤醒锁</td><td>防止萤幕变暗/处理器休眠的权限</td></tr>
+<tr><td>Motion sensor</td><td>动作感测器</td><td>量测加速度与旋转力</td></tr>
+<tr><td>Environmental sensor</td><td>环境感测器</td><td>量测大气压、光、温度</td></tr>
+<tr><td>Position sensor</td><td>位置感测器</td><td>量测装置的物理朝向与方位</td></tr>
+</table>
+</div>
+
+<h2 id="c6-cheat">Cheat Sheet</h2>
+<p><strong>★ Camera</strong>：Gallery(不碰相机) → Intent呼叫现有app(简单／不需CAMERA权限) → 自己写(复杂／需CAMERA权限)</p>
+<p><strong>Manifest</strong>：<code>uses-feature camera</code> 阻止无相机装置安装</p>
+<p><strong>相机延伸应用</strong>：理赔／支票／搜寻(Lens)／翻译／扫描文件／物件辨识／VPS室内导航</p>
+<p><strong>MediaPlayer</strong>：建立→prepare→start/pause→<strong>release()（必须）</strong>；<strong>WAKE_LOCK</strong>防休眠</p>
+<p><strong>三大感测器</strong>：Motion(加速度/旋转)／Environmental(气压/光/温)／Position(朝向/磁北)</p>
+<p><strong>Barometer</strong> 帮 GPS 更快锁定高度</p>
+
+<hr>
+
+<h2 id="c6-practice">Practice</h2>
+
+<h3>A. MCQ (5)</h3>
+<ol>
+<li>Which approach to handling a camera request does <b>not</b> require the CAMERA permission?<br>(A) CameraX (B) Camera2 API (C) Intent to the existing camera app (D) Custom camera preview</li>
+<li>Which manifest element prevents an app from being installed on devices without a camera?<br>(A) &lt;uses-permission&gt; (B) &lt;uses-feature&gt; (C) &lt;queries&gt; (D) &lt;intent-filter&gt;</li>
+<li>Which sensor category does a gyroscope belong to?<br>(A) Environmental (B) Position (C) Motion (D) Optical</li>
+<li>Which method must always be called when a MediaPlayer is no longer needed?<br>(A) stop() (B) pause() (C) release() (D) reset()</li>
+<li>Which sensor helps GPS get a faster altitude lock by providing barometric pressure data?<br>(A) Accelerometer (B) Barometer (C) Magnetometer (D) Gyroscope</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw"><table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>C</strong></td><td>Delegating to the existing camera app means that app does the capturing, so your app never needs CAMERA permission.</td></tr>
+<tr><td>2</td><td><strong>B</strong></td><td>&lt;uses-feature&gt; declares required hardware; Play Store filters out incompatible devices.</td></tr>
+<tr><td>3</td><td><strong>C</strong></td><td>Gyroscope measures rotational forces, placing it in the Motion category.</td></tr>
+<tr><td>4</td><td><strong>C</strong></td><td>release() frees the system resources a MediaPlayer holds.</td></tr>
+<tr><td>5</td><td><strong>B</strong></td><td>The barometer supplies altitude data that speeds up GPS lock.</td></tr>
+</table></div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Describe two ways a mobile app can handle a camera request, and recommend the most suitable one for a document-upload feature in a government app, with justification. <em>(9 marks)</em></li>
+<li>Explain why a MediaPlayer object must always call release(), with a concrete consequence of forgetting to. <em>(5 marks)</em></li>
+<li>Classify accelerometer, barometer and magnetometer into their correct sensor categories, and state what each measures. <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> (Same structure as the Q4(b) model answer above.) An app can either <b>delegate to the existing camera app via an intent</b> (ACTION_IMAGE_CAPTURE), which is simple and needs no CAMERA permission, or <b>build its own camera functionality</b> with CameraX/Camera2, which allows full customisation but requires the CAMERA permission and more development effort. For a document-upload feature, the intent-based approach is more suitable, since no custom capture UI is needed and avoiding the CAMERA permission keeps the app's privacy footprint minimal, which matters for user trust in a government context.</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> A MediaPlayer holds real system resources, including hardware decoders, which are limited and shared across the whole device. If release() is never called when the player is no longer needed — for example, when the user navigates away from the screen — those resources stay allocated indefinitely, which can eventually prevent other apps (or even this app's own future MediaPlayer instances) from being able to acquire a decoder, causing playback failures elsewhere on the device.</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> Accelerometer — <b>Motion</b> sensor, measures the rate of change in velocity (acceleration), excluding gravity. Barometer — <b>Environmental</b> sensor, measures atmospheric pressure. Magnetometer — <b>Position</b> sensor, measures orientation relative to magnetic north.</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>MyGOV wants a feature letting users scan a physical form with automatic edge detection and cropping. Decide whether this needs the Intent-based camera approach or a custom-built camera, and justify.</li>
+<li>A step-counting fitness feature is being added to an app. Identify the most relevant sensor category and name a specific sensor that would be used.</li>
+<li>Explain what would go wrong if an app requested WRITE_EXTERNAL_STORAGE but forgot to declare INTERNET while streaming audio from a URL.</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> This needs a <b>custom-built camera</b> (CameraX/Camera2), because automatic edge detection and real-time cropping guidance require processing the live camera preview — something the existing camera app's intent-based flow does not expose. This is exactly the "needs special processing" branch of the decision tree, unlike a plain document photo upload.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> This falls under <b>Motion sensors</b>; specifically the <b>accelerometer</b>, since step counting relies on detecting the repeating pattern of acceleration produced by walking or running.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> Without the INTERNET permission, any attempt to open a network connection to stream the audio URL will fail (typically with a SecurityException or a connection failure), regardless of whether storage permissions are correctly declared — the two permissions are unrelated, and missing INTERNET specifically blocks all network access, including MediaPlayer's ability to fetch a remote stream.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>The camera decision tree and the app-type decision tree from Chapter 1 (Native/Hybrid/Web) share a similar shape: they both ultimately ask "how much customisation do you actually need?" Explain why this question recurs across such different decisions in mobile development. <em>(6 marks)</em></li>
+<li>Explain why Android maintains separate audio streams (music, alarms, notifications, ringer, etc.) instead of a single global volume. <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> Both decisions trade the same two things against each other: <b>development cost and control</b> versus <b>speed and simplicity</b>. Delegating to an existing solution — a native OS's camera app, or a web/hybrid shell — is always cheaper and faster because someone else has already built and optimised it, but it only fits when the app's needs match what that existing solution already offers. The moment an app needs something the existing solution can't provide — custom camera processing, or native-only performance and device access — the only way to get it is to build it yourself, at higher cost. The question recurs because it's really asking "does my requirement exceed what the platform gives me for free", which is the central trade-off in almost every build-vs-use-existing decision in mobile development.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> Separate audio streams let the system (and the user) control the volume of different kinds of sound <b>independently</b>, because they serve different purposes with different urgency. A user might want their alarm to always be loud enough to wake them even if they've turned music down, or want notification sounds muted during a call without silencing the in-call audio itself. A single global volume would force all of these to move together, making it impossible to, for example, keep the ringer audible while listening to music at a low volume — separating the streams gives the user (and apps) fine-grained control that matches how these sounds are actually used in practice.</p>
+</div>
+
+<h2 id="c6-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>展开在哪一章</th></tr>
+<tr><td>Runtime permission 请求（CAMERA、RECORD_AUDIO）</td><td><strong>Ch 1</strong> — Permission 机制的基础规则</td></tr>
+<tr><td>相机拍摄的照片存哪里</td><td><strong>Ch 4.1</strong> — Internal/External Storage、File API</td></tr>
+<tr><td>Barometer 帮 GPS 更快锁定</td><td><strong>Ch 5</strong> — Location-based Services（回头看会更懂）</td></tr>
+</table>
+</div>
+
+</section>
+
+<section class="chapter" id="chapter-7">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 7 — Mobile Application Packaging and Publication</h1>
+  <p class="lede">这是最后一章，也是<strong>考卷 Q4(c) 的原始出处</strong>——派送管道的选择（5 分）与变现模式的选择（5 分）。这章内容比前几章更偏列举与 checklist，图相对少，但 Slide 里那道「Question 7.3」用四个真实 app（PUBG Mobile、MyDigi、WhatsApp、Touch 'n Go）问该配哪种变现模式，是很好的练习素材，这份笔记把答案补上了。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c7-s1">发布前 Checklist</a></li>
+<li><a href="#c7-s2">Preparing for Release</a></li>
+<li><a href="#c7-s3">Distribution</a> <span class="tag">考卷 Q4c(i)</span></li>
+<li><a href="#c7-s4">Monetize Your App</a> <span class="tag">考卷 Q4c(ii)</span></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>Q4(c)(i) 要求分析<strong>一个</strong>政府用来派送 MyGOV 的派送管道，附理由（5 分）；Q4(c)(ii) 要求解释一个适合 MyGOV 的变现模式（5 分）——第 3、4 节结尾各有满分答法。</p>
+</div>
+
+<h2 id="c7-s1">1. 发布前 Checklist</h2>
+
+<p>上架前要确认的六件事：<strong>① Developer Program Policies ② Developer Account ③ Localization ④ Device Compatibility ⑤ Quality Test (Alpha ＆ Beta) ⑥ Store Listing</strong>。</p>
+
+<div class="tw">
+<table>
+<tr><th>项目</th><th>说明</th></tr>
+<tr><td><strong>Developer Program Policies</strong></td><td>五大类：Restricted Content · Intellectual Property · Privacy and Security · Monetization and Ads · Store Listing and Promotion</td></tr>
+<tr><td><strong>Developer Account</strong></td><td>平台商发给开发者的<strong>发布帐号</strong>，让你能张贴、展示、销售、派送 app。<strong>Google Play：USD 25（一次性）</strong>／<strong>Apple：USD 99（每年）</strong>／其他平台多为免费</td></tr>
+<tr><td><strong>Localization</strong></td><td>调整 app 以符合特定<strong>语言、文化或目标族群的观感</strong>；成功的本地化 = <strong>看起来像是在当地开发的</strong></td></tr>
+<tr><td><strong>Device Compatibility</strong></td><td>确保 app 在不同<strong>硬体、软体与作业系统</strong>的装置上都跑得好</td></tr>
+<tr><td><strong>Quality Test</strong></td><td>确保 app 符合规范与标准的流程（Alpha／Beta 测试）</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+<span class="lab">💡 Slide 的真实例子</span>
+<p>Localization 那段 slide 放了 TED app 的对照截图——英文版按钮写「Surprise Me」，德文版不是逐字翻译成「Überraschen Sie mich」这种生硬直译，而是改写成道地德文用语「Überraschung」。这正是「看起来像本地开发」的具体示范：<strong>本地化不只是翻译文字，连用语的自然度都要照顾</strong>，这一点 slide 的文字部分完全没提到，只能从图上看出来。</p>
+</div>
+
+<p><strong>Google Play Console 功能</strong>：查看 app 的安装数、评分、最新更新与状态；加入社交游戏功能；用付费 app 或 in-app product 赚钱；了解 app 效能。</p>
+
+<h2 id="c7-s2">2. Preparing for Release</h2>
+
+<p>Release-ready 的 <code>.apk</code> 档必须用<strong>自己的凭证签署</strong>。四个最低要求：</p>
+<ol>
+<li><strong>Cryptographic keys</strong> — 开发者拥有的数位签章</li>
+<li><strong>Application icon</strong></li>
+<li><strong>End-user License Agreement</strong></li>
+<li><strong>Promotional and marketing materials</strong></li>
+</ol>
+
+<p><strong>签署四步</strong>：Create a key store → Create a private key → Build your project → Sign your app。<strong>签署考量三点</strong>：<strong>Modularity · Code/data sharing · Update</strong>——同一把 key 才能正常更新与共用资料，这跟 <strong>Ch1 讲的「同凭证共用 UID」</strong>是同一把钥匙的概念。</p>
+
+<p><strong>Store Listing</strong>：app size <strong>&lt; 150 MB</strong>（+ expansion 最多 2 GB）；选平台；收费或免费。</p>
+
+<h2 id="c7-s3">3. Distribution <span class="tag">考卷 Q4c(i)</span></h2>
+
+<p><strong>三个派送管道</strong>：<strong>Marketplace（app store）· Email · Website or server</strong>。</p>
+
+<p><strong>四个派送方法</strong>：</p>
+
+<div class="tw">
+<table>
+<tr><th>方法</th><th>重点</th></tr>
+<tr><td><strong>Android Go</strong></td><td>针对低阶机：<strong>target Oreo (API 26)</strong>、<strong>app &lt; 40 MB</strong>、<strong>RAM 用量 &lt; 50 MB（游戏 150 MB）</strong>、<strong>5 秒内启动</strong></td></tr>
+<tr><td><strong>App Bundles</strong></td><td>上传<strong>编译后的 code 与 resources</strong>，<strong>APK 的产生与签署延后交给 Google Play</strong>；<strong>Dynamic Delivery</strong> = Play 依<strong>用户装置的设定</strong>产生对应的 APK</td></tr>
+<tr><td><strong>Google Play Instant</strong></td><td><strong>不用安装的原生 app</strong>，由 <strong>URL 启动</strong>；是现有 app 的升级而非另一个 app；<strong>Android 5.0 (API 21)+</strong>；由 App Bundle 支援；两类 = <strong>Try</strong>（Play Store 体验）／<strong>Instant Play</strong>（Play Games 完整游戏）；限 <strong>≤ 15 MB</strong>；缺点 = <strong>只能用部分 API + 大小限制</strong></td></tr>
+<tr><td><strong>Support Chrome OS</strong></td><td>Chrome OS 支援 Play Store 与 Android app；manifest 要加 <code>&lt;uses-feature android:name="android.hardware.touchscreen" android:required="false"/&gt;</code></td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="App Bundle 的 Dynamic Delivery 流程">
+<defs>
+<marker id="c7-arB" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="66" width="150" height="56" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="22" y="88" font-weight="700" font-size="12">开发者</text>
+<text x="22" y="106" font-size="10" fill="var(--d-muted)">上传一份 .aab</text>
+
+<line x1="163" y1="94" x2="220" y2="94" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c7-arB)"/>
+
+<rect x="230" y="66" width="170" height="56" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.6"/>
+<text x="244" y="88" font-weight="700" font-size="12">Google Play</text>
+<text x="244" y="106" font-size="10" fill="var(--d-muted)">依装置设定动态产生 APK</text>
+
+<line x1="405" y1="80" x2="455" y2="35" stroke="var(--d-accent)" stroke-width="1.5" marker-end="url(#c7-arB)"/>
+<line x1="405" y1="94" x2="455" y2="94" stroke="var(--d-accent)" stroke-width="1.5" marker-end="url(#c7-arB)"/>
+<line x1="405" y1="108" x2="455" y2="153" stroke="var(--d-accent)" stroke-width="1.5" marker-end="url(#c7-arB)"/>
+
+<rect x="465" y="10" width="220" height="40" rx="7" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="478" y="35" font-size="11">低阶机：小尺寸+低密度图</text>
+<rect x="465" y="74" width="220" height="40" rx="7" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="478" y="99" font-size="11">旗舰机：高解析图+全功能</text>
+<rect x="465" y="138" width="220" height="40" rx="7" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="478" y="163" font-size="11">平板：适配大萤幕版面</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>开发者<b>只上传一份</b>档案（App Bundle），实际拿到什么 APK 的<b>决定权在 Google Play</b>，不同装置拿到的是不同、更小的 APK——这就是为什么 App Bundle 能显著缩小下载体积：低阶机根本不会拿到旗舰机专用的高解析图资源。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q4(c)(i) 满分答法</span>
+<p><strong>「Analyse ONE distribution channel used by government to deliver MyGOV, with reasons」（5 marks）</strong></p>
+<p>建议：<strong>Marketplace（Google Play Store / Apple App Store）</strong>。理由：①<strong>覆盖率最高</strong>，全民都能透过官方管道找到并安装 ②平台会做<strong>安全扫描与审核</strong>，对政府 app 的可信度至关重要 ③<strong>自动更新机制</strong>确保所有用户都跑在最新、已修补漏洞的版本 ④官方帐号发布能<strong>防止假冒的钓鱼 app</strong> ⑤可以搭配 <strong>App Bundle 的 Dynamic Delivery</strong> 缩小下载量，照顾乡区低阶机使用者。</p>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>The Marketplace (app store) is the most suitable distribution channel for MyGOV. It gives the widest reach across the population, the platform performs security review before listing, updates are pushed automatically so every user runs a patched version, official publication under a verified developer account prevents counterfeit apps, and App Bundle's Dynamic Delivery can be used to minimise download size for lower-end devices common in rural areas.</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Review Questions 1–3</span>
+<div class="qa"><p class="q">1. Instant App 的好处？</p>
+<p class="a">让使用者<b>不用安装就能体验 app 的核心功能</b>，大幅降低尝试的门槛（点一个连结就能玩，不用等下载安装）；对开发者来说，能提高<b>转换率</b>——愿意试用的人变多了，其中一部分会因为体验好而转成正式安装。</p></div>
+<div class="qa"><p class="q">2. Dynamic Delivery 最主要的好处？</p>
+<p class="a"><b>让每个装置只下载它真正需要的资源</b>，不多不少——不会让低阶机下载到它用不上的高解析图或不支援的功能模组，<b>显著缩小实际下载体积</b>，对网络条件差、储存空间有限的使用者尤其有帮助。</p></div>
+<div class="qa"><p class="q">3. 一款支援手机与高解析平板的 app，因为塞了两套画质的美术素材导致体积超过 100MB，该怎么解决？（5 marks）</p>
+<p class="a">改用 <b>App Bundle + Dynamic Delivery</b>：把两套画质的美术素材都放进同一份 App Bundle 上传，<b>APK 的产生延后交给 Google Play</b>，系统会依照<b>每个使用者装置的实际萤幕密度</b>只派送对应的那一套素材——手机使用者不会下载到平板专用的高解析图，平板使用者也不会被塞进不必要的低解析版本，整体下载体积因此大幅缩小，不需要开发者自己手动拆分成两个 APK 分别上架。</p></div>
+</div>
+
+<h2 id="c7-s4">4. Monetize Your App <span class="tag">考卷 Q4c(ii)</span></h2>
+
+<div class="tw">
+<table>
+<tr><th>模式</th><th>说明</th></tr>
+<tr><td><strong>Premium (Paid)</strong></td><td>付费下载 + in-app billing；功能丰富、市场利基窄</td></tr>
+<tr><td><strong>Freemium</strong></td><td>免费下载，靠 <strong>in-app billing</strong> 卖数位商品；数位商品分 <strong>Durable（永久）</strong>／<strong>Consumable（消耗性）</strong></td></tr>
+<tr><td><strong>Subscription</strong></td><td>免费试用 + 订阅费（in-app billing）</td></tr>
+<tr><td><strong>Ads</strong></td><td>免费，用 <strong>AdMob + Google Mobile Ads SDK</strong> 显示广告</td></tr>
+</table>
+</div>
+
+<p><strong>其他变现方式</strong>：<strong>E-Commerce</strong>（B2C，靠销售佣金 + 设定费）· <strong>Rewarded Products</strong>（分享、扫 QR、填问卷换奖励）· <strong>Service</strong>（实体/线上服务的延伸）· <strong>Data Collection</strong>（合作/联盟，客服、促销、抽奖）。</p>
+
+<div class="box ok">
+<span class="lab">✅ Question 7.3 — 四个真实 app 该配哪种变现模式？</span>
+<div class="tw">
+<table>
+<tr><th>App</th><th>模式</th><th>理由</th></tr>
+<tr><td><strong>a. PUBG Mobile</strong></td><td>Freemium</td><td>免费下载，靠 skin、battle pass 等<strong>消耗性/永久数位商品</strong>获利，典型的手游变现模式</td></tr>
+<tr><td><strong>b. MyDigi</strong></td><td>Service</td><td>是电信商既有服务（帐单、流量管理）的<strong>数位延伸</strong>，app 本身不收费，价值在于降低客服成本、提升既有客户的使用体验</td></tr>
+<tr><td><strong>c. WhatsApp</strong></td><td>Service</td><td>免费、不靠广告（不同于同集团的 Facebook/Messenger），是<strong>通讯服务本身</strong>，商业价值来自集团其他产品线（如 WhatsApp Business API）而非这个 app 直接收费</td></tr>
+<tr><td><strong>d. Touch 'n Go eWallet</strong></td><td>Service</td><td>是既有<strong>实体/线上支付服务（过路费、储值卡）</strong>的数位延伸，app 本身免费，获利来自交易手续费等既有商业模式，不是 app 内购</td></tr>
+</table>
+</div>
+</div>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q4(c)(ii) 满分答法</span>
+<p><strong>「Explain a suitable monetisation model for the MyGOV Malaysia mobile app」（5 marks）</strong></p>
+<p>MyGOV 最适合<strong>完全免费，采用 Service 模式</strong>（不采用传统营利性变现）。理由：①这是<strong>公共服务</strong>，属于国家数位转型计划，若收费或放广告会<strong>排除低收入与乡区用户</strong>，违背普及全民的目标 ②政府 app 若放广告会损害<strong>公信力</strong>，也有资料隐私疑虑 ③它是<strong>既有政府服务的数位延伸</strong>，价值来自节省行政成本、提升服务效率，而不是 app 本身要营利 ④app 内的 ePayment 功能收的是<strong>政府规费本身</strong>（例如驾照更新费），不是 app 的营利手段。</p>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>MyGOV should remain completely free and follow a Service monetisation model rather than a traditional revenue model. As a public digital-transformation initiative, charging users or showing ads would exclude low-income and rural citizens and would undermine public trust in a government app. Its value lies in extending existing government services digitally and reducing administrative cost, not in generating direct app revenue — any payments processed through the app, such as licence renewal fees, are government fees themselves rather than app monetisation.</p>
+</div>
+
+<hr>
+
+<h2 id="c7-mislead">⚠️ Slide 讲得不完整的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更完整的理解</th><th>考试怎么办</th></tr>
+<tr><td>Monetize Your App</td><td>Slide 把 App Bundle 大小限制、Google Play Instant 的 15MB 限制分开讲，容易忘记两者的关系</td><td>Google Play Instant <strong>由 App Bundle 支援</strong>，也就是说要做「不用安装先试玩」的功能，前提通常是这个 app 已经用 App Bundle 的方式打包</td><td>被问到 Instant App 的技术前提时，记得连回 App Bundle</td></tr>
+</table>
+</div>
+
+<h2 id="c7-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>Developer Account</td><td>开发者帐号</td><td>平台商发的发布帐号</td></tr>
+<tr><td>Localization</td><td>本地化</td><td>让 app 看起来像本地开发，不只是翻译</td></tr>
+<tr><td>App Bundle</td><td>应用程式套件</td><td>上传一份，APK 产生延后给 Play 处理</td></tr>
+<tr><td>Dynamic Delivery</td><td>动态派送</td><td>依装置设定只派送需要的资源</td></tr>
+<tr><td>Google Play Instant</td><td>免安装体验</td><td>不用装就能试玩，由 App Bundle 支援</td></tr>
+<tr><td>Freemium</td><td>免费增值</td><td>免费下载，靠 in-app billing 获利</td></tr>
+<tr><td>BaaS</td><td>后端即服务</td><td>见 Ch4.2，与 Service 变现模式概念不同，不要混淆</td></tr>
+</table>
+</div>
+
+<h2 id="c7-cheat">Cheat Sheet</h2>
+<p><strong>发布前 6 步</strong>：Policies／Developer Account(Google $25一次/Apple $99年)／Localization(不只翻译)／Device Compatibility／Quality Test／Store Listing</p>
+<p><strong>签署 4 步</strong>：key store→private key→build→sign；<strong>APK &lt;150MB (+2GB expansion)</strong></p>
+<p><strong>★ 派送方法</strong>：Android Go(低阶机 &lt;40MB/&lt;50MB RAM/5秒启动)／<strong>App Bundle+Dynamic Delivery</strong>(依装置只派送需要的资源)／Google Play Instant(≤15MB,由App Bundle支援)／Chrome OS(touchscreen非必须)</p>
+<p><strong>★ 变现模式</strong>：Premium(付费)／Freemium(免费+内购)／Subscription(订阅)／Ads(广告)／E-Commerce／Rewarded／Service(既有服务延伸)／Data Collection</p>
+<p><strong>MyGOV 该用</strong>：Marketplace 派送 + Service 模式（免费不营利）</p>
+
+<hr>
+
+<h2 id="c7-practice">Practice</h2>
+
+<h3>A. MCQ (5)</h3>
+<ol>
+<li>Which distribution method lets Google Play generate a device-specific APK from a single uploaded bundle?<br>(A) Android Go (B) App Bundle + Dynamic Delivery (C) Google Play Instant (D) Chrome OS support</li>
+<li>What is the size limit for Google Play Instant?<br>(A) 15 MB (B) 40 MB (C) 100 MB (D) 150 MB</li>
+<li>Which monetisation model best fits a free telco account-management app?<br>(A) Freemium (B) Subscription (C) Service (D) Ads</li>
+<li>What does successful localization primarily mean?<br>(A) translating every string literally (B) making the app feel like it was developed locally (C) removing all region-specific content (D) using only English</li>
+<li>What must developers do before releasing an app, related to app signing?<br>(A) disable all permissions (B) sign the release APK with their own certificate (C) remove the manifest (D) uninstall the debug build</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw"><table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>B</strong></td><td>Dynamic Delivery is exactly this mechanism, deferring APK generation to Google Play.</td></tr>
+<tr><td>2</td><td><strong>A</strong></td><td>Google Play Instant apps are limited to 15 MB.</td></tr>
+<tr><td>3</td><td><strong>C</strong></td><td>A telco account app extends an existing service digitally rather than selling anything itself.</td></tr>
+<tr><td>4</td><td><strong>B</strong></td><td>Successful localization adapts tone and cultural fit, not just literal word-for-word translation.</td></tr>
+<tr><td>5</td><td><strong>B</strong></td><td>A release-ready APK must be signed with the developer's own certificate.</td></tr>
+</table></div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Explain how App Bundle and Dynamic Delivery solve the problem of a bloated APK containing assets for every device type. <em>(6 marks)</em></li>
+<li>Justify why the Marketplace is generally the best distribution channel for a government app, compared to Email or Website distribution. <em>(5 marks)</em></li>
+<li>Explain why a government service app would avoid an Ads-based monetisation model even though it would generate revenue. <em>(5 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> Instead of shipping one APK containing assets for every possible device (all screen densities, all supported languages), the developer uploads a single App Bundle containing everything, and <b>defers APK generation to Google Play</b>. When a specific device requests the app, Play's Dynamic Delivery generates and serves an APK containing <b>only the resources that device actually needs</b> — the matching density's images, the device's language, its ABI — so no device ever downloads assets meant for a different configuration, substantially shrinking the download size.</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> The Marketplace offers the widest possible reach since it's where the general public already looks for apps, includes a security review step before listing that Email or direct website downloads skip entirely, provides automatic updates so users stay on a patched version without manual action, and — critically for a government app — publication under a verified official account makes it much harder for a malicious actor to distribute a convincing fake.</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> Ads generate revenue but come at the cost of <b>public trust and data privacy concerns</b>, which are disproportionately important for a government app handling identity and payment information — showing third-party ads alongside sensitive government services could be seen as commercialising a public service or exposing citizen data to ad networks. Since MyGOV's purpose is efficient public service delivery rather than profit, the reputational and trust cost of ads outweighs the modest revenue they would generate.</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>A game studio wants players to try their game instantly from a Play Store listing without installing first. Identify the feature needed and its size constraint.</li>
+<li>MyGOV's APK has grown past 150MB because it bundles high-resolution icons for both phones and tablets. Propose a fix.</li>
+<li>Classify Touch 'n Go eWallet's and PUBG Mobile's monetisation models and explain the difference in their underlying business logic.</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> <b>Google Play Instant</b>, specifically the "Try" category (experienced directly in the Play Store). Constraint: the instant experience must be <b>≤ 15 MB</b>, and it is supported by App Bundle packaging.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> Repackage as an <b>App Bundle</b> and rely on <b>Dynamic Delivery</b>: bundle both the phone and tablet icon sets into the single uploaded bundle, and let Google Play generate a device-specific APK containing only the icon set that matches each user's actual device, bringing the effective download size back under the limit without maintaining two separate listings.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> Touch 'n Go eWallet follows a <b>Service</b> model — the app is a free digital extension of an existing real-world payment service, and revenue comes from transaction-related business (not from the app itself). PUBG Mobile follows a <b>Freemium</b> model — the app is free but generates revenue directly through in-app purchases of digital goods (skins, battle passes). The underlying difference: Service monetisation earns money <b>outside</b> the app through the service it extends, while Freemium earns money <b>inside</b> the app through what users buy within it.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>Explain why "same signing key" matters for both app updates (this chapter) and shared Linux UID access between two apps (Chapter 1) — what do these two requirements have in common conceptually? <em>(6 marks)</em></li>
+<li>A free, ad-supported model and a free, Service-extension model both result in a $0 price tag to the user, but they are fundamentally different business models. Explain the difference and why it matters when choosing one for a sensitive-data app. <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> Both cases use the <b>signing certificate as proof of identity/ownership</b>. For updates, Android will only treat a new APK as a legitimate update to an existing app if it is signed with the <b>same certificate</b> as the installed version — this prevents someone else from pushing a malicious "update" to your users. For sharing a Linux UID between two apps, the system requires both apps to be signed with the same certificate as proof that they come from the <b>same trusted developer</b>, since sharing a UID removes the sandbox boundary between them and that trust can't be granted lightly. In both cases, the certificate functions as the system's way of answering "can I trust that this came from the same place as before" — updates trust continuity, shared UID trusts common ownership.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> In an ad-supported model, the app's <b>actual customer is the advertiser</b>, not the user — the app's business depends on showing ads and often on collecting user data to target them, even though the user pays nothing directly. In a Service-extension model, there is no advertiser in the loop at all; the app's cost is absorbed because it reduces cost or adds value elsewhere (e.g. fewer support calls, better customer retention for the underlying service), and the user is genuinely just a user, not a product being monetised through data or attention. For an app handling sensitive data — financial details, identity documents, government records — this distinction matters enormously: an ad-supported model creates a structural incentive to collect and monetise user data that a Service model simply does not have, which is precisely why a government app should avoid it even though both models are "free" to the end user.</p>
+</div>
+
+<h2 id="c7-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>回头连接到哪一章</th></tr>
+<tr><td>签署用的 certificate</td><td><strong>Ch 1</strong> — 共用 Linux UID 需要 same certificate（回头看会更懂）</td></tr>
+<tr><td>App Bundle 依装置分派资源</td><td><strong>Ch 2.3</strong> — Design for Everyone 的 resource 外部化，是同一套机制的延伸</td></tr>
+<tr><td>低阶机限制（Android Go）</td><td><strong>Ch 1</strong> — 四大挑战（Processing power/Memory/Battery/Network）</td></tr>
+</table>
+</div>
+
+<hr>
+
+<footer>
+<p>七章笔记到这里全部完成。最后复习建议：先用每章结尾的 Cheat Sheet 快速过一遍，再挑标了 <span class="tag" style="margin-left:0">考卷 Qx</span> 的题目重新做一次不看答案，最后拿开头 Ch1 提到的那份 MyGOV 考卷整份计时作答，检查是不是每一题都能在这份笔记里找到对应的满分答法。</p>
+</footer>
+
 </section>
 
 </div>
