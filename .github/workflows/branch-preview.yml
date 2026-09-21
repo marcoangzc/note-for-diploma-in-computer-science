@@ -48,6 +48,9 @@ jobs:
 
           echo "deploy_dir=$deploy_dir" >> "$GITHUB_OUTPUT"
           echo "baseurl=$baseurl" >> "$GITHUB_OUTPUT"
+          
+      - name: Generate note index
+        run: python3 scripts/generate-index.py
 
       - name: Build Jekyll
         run: |
