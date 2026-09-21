@@ -1,0 +1,88 @@
+name: Build branch preview
+
+on:
+  push:
+    branches:
+      - "**"
+    branches-ignore:
+      - "gh-pages"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: branch-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"
+          bundler-cache: true
+
+      - name: Calculate preview path
+        id: preview
+        shell: bash
+        run: |
+          branch="${GITHUB_REF_NAME}"
+
+          # 将 feature/database 转换为 feature-database
+          slug=$(echo "$branch" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's#[^a-z0-9._-]#-#g' \
+            | sed 's#--*#-#g')
+
+          repository="${GITHUB_REPOSITORY#*/}"
+
+          if [ "$branch" = "main" ]; then
+            deploy_dir=""
+            baseurl="/$repository"
+          else
+            deploy_dir="previews/$slug"
+            baseurl="/$repository/$deploy_dir"
+          fi
+
+          echo "branch=$branch"
+          echo "slug=$slug"
+          echo "deploy_dir=$deploy_dir"
+          echo "baseurl=$baseurl"
+
+          echo "deploy_dir=$deploy_dir" >> "$GITHUB_OUTPUT"
+          echo "baseurl=$baseurl" >> "$GITHUB_OUTPUT"
+
+      - name: Build Jekyll site
+        run: |
+          bundle exec jekyll build \
+            --destination ./_site \
+            --baseurl "${{ steps.preview.outputs.baseurl }}"
+        env:
+          JEKYLL_ENV: production
+
+      - name: Deploy main site
+        if: github.ref_name == 'main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          keep_files: true
+          enable_jekyll: false
+
+      - name: Deploy branch preview
+        if: github.ref_name != 'main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          destination_dir: ${{ steps.preview.outputs.deploy_dir }}
+          keep_files: true
+          enable_jekyll: false
