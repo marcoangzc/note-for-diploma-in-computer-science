@@ -56,6 +56,7 @@ jobs:
             --baseurl "${{ steps.preview.outputs.baseurl }}"
         env:
           JEKYLL_ENV: production
+          PAGES_REPO_NWO: ${{ github.repository }}
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
