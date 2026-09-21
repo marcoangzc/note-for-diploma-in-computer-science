@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AMIT3353 — note v1</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#fbfaf8; --card:#ffffff; --fg:#1b1a17; --muted:#6b6862;
+  --border:#e3dfd8; --line:#d6d1c8;
+  --accent:#b4530a; --accent-soft:#fdf2e7;
+  --warn:#9a6b00; --warn-bg:#fdf6e3; --warn-line:#e8d9a8;
+  --ok:#2f6b3f; --ok-bg:#eef6f0; --ok-line:#c4ddcb;
+  --say:#2a5a8f; --say-bg:#eef4fa; --say-line:#c3d7ea;
+  --code-bg:#f3f0ea;
+  --d-fill:#ffffff; --d-fill2:#fdf2e7; --d-fill3:#f3f0ea;
+  --d-stroke:#b9b2a6; --d-accent:#b4530a; --d-text:#1b1a17; --d-muted:#6b6862;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151300; --bg:#161513; --card:#1e1d1a; --fg:#eceae5; --muted:#a29d94;
+    --border:#33312c; --line:#3d3a34;
+    --accent:#e0913f; --accent-soft:#2b2118;
+    --warn:#dcb765; --warn-bg:#2a2418; --warn-line:#4a3f22;
+    --ok:#87c298; --ok-bg:#1b2620; --ok-line:#2f4a38;
+    --say:#8fbce8; --say-bg:#18222c; --say-line:#2c4256;
+    --code-bg:#24221e;
+    --d-fill:#1e1d1a; --d-fill2:#2b2118; --d-fill3:#24221e;
+    --d-stroke:#5a554c; --d-accent:#e0913f; --d-text:#eceae5; --d-muted:#a29d94;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161513; --card:#1e1d1a; --fg:#eceae5; --muted:#a29d94;
+  --border:#33312c; --line:#3d3a34;
+  --accent:#e0913f; --accent-soft:#2b2118;
+  --warn:#dcb765; --warn-bg:#2a2418; --warn-line:#4a3f22;
+  --ok:#87c298; --ok-bg:#1b2620; --ok-line:#2f4a38;
+  --say:#8fbce8; --say-bg:#18222c; --say-line:#2c4256;
+  --code-bg:#24221e;
+  --d-fill:#1e1d1a; --d-fill2:#2b2118; --d-fill3:#24221e;
+  --d-stroke:#5a554c; --d-accent:#e0913f; --d-text:#eceae5; --d-muted:#a29d94;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 12px);-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.75;
+}
+.wrap{max-width:860px;margin:0 auto;padding:28px 20px 80px}
+header.top{border-bottom:2px solid var(--accent);padding-bottom:18px;margin-bottom:8px}
+.kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 6px}
+h1{font-size:1.72rem;line-height:1.25;margin:0 0 10px;letter-spacing:-.01em}
+.lede{color:var(--muted);font-size:.95rem;margin:0}
+h2{font-size:1.3rem;margin:2.6em 0 .6em;padding-top:.3em;border-top:1px solid var(--border);letter-spacing:-.01em}
+h2:first-of-type{border-top:none}
+h3{font-size:1.05rem;margin:1.8em 0 .5em}
+h4{font-size:.95rem;margin:1.4em 0 .4em;color:var(--muted)}
+p{margin:.7em 0}
+ul,ol{padding-left:1.35em;margin:.6em 0}
+li{margin:.3em 0}
+code{background:var(--code-bg);padding:.12em .38em;border-radius:4px;font-size:.88em;
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;overflow-x:auto;font-size:.84rem;line-height:1.55;margin:.9em 0}
+pre code{background:none;padding:0}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:1em 0;border:1px solid var(--border);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;background:var(--card)}
+th,td{border-bottom:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap;color:var(--fg)}
+tr:last-child td{border-bottom:none}
+td strong{color:var(--fg)}
+.box{border-radius:8px;padding:12px 16px;margin:1.1em 0;border-left:4px solid}
+.warn{background:var(--warn-bg);border-color:var(--warn)}
+.warn .lab{color:var(--warn)}
+.ok{background:var(--ok-bg);border-color:var(--ok)}
+.ok .lab{color:var(--ok)}
+.say{background:var(--say-bg);border-color:var(--say)}
+.say .lab{color:var(--say)}
+.lab{font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:4px}
+.box p{margin:.35em 0}
+.box p:first-of-type{margin-top:0}
+.box p:last-child{margin-bottom:0}
+figure{margin:1.6em 0;padding:16px 14px 10px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+figure svg{display:block;width:100%;height:auto;max-width:100%}
+figcaption{margin-top:10px;font-size:.84rem;color:var(--muted);line-height:1.6;border-top:1px dashed var(--line);padding-top:8px}
+figcaption b{color:var(--fg)}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:1.4em 0}
+.toc ol{margin:.3em 0;padding-left:1.3em}
+.toc a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line)}
+.toc a:hover{color:var(--accent);border-color:var(--accent)}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;padding:1px 7px;border-radius:99px;
+  background:var(--accent);color:#fff;vertical-align:middle;margin-left:6px;letter-spacing:.03em}
+:root[data-theme="dark"] .tag,
+:root:not([data-theme="light"]) .tag{color:#161513}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .tag{color:#fff}}
+hr{border:none;border-top:1px solid var(--border);margin:2.4em 0}
+.qa{border-left:3px solid var(--line);padding-left:14px;margin:1em 0}
+.qa .q{font-weight:600}
+.qa .a{color:var(--muted);font-size:.93rem}
+.qa .a b{color:var(--fg)}
+footer{margin-top:3em;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+@media(max-width:560px){
+  .wrap{padding:20px 14px 60px}
+  h1{font-size:1.45rem} h2{font-size:1.18rem}
+  body{font-size:15.5px}
+  th,td{padding:8px 10px;font-size:.86rem}
+}
+
+.chapter-nav{position:sticky;top:0;z-index:50;background:var(--bg);
+  border-bottom:1px solid var(--border);
+  padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+  display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chapter-nav a{flex:0 0 auto;padding:6px 13px;border-radius:999px;border:1px solid var(--border);
+  color:var(--fg);text-decoration:none;font-size:.82rem;white-space:nowrap;background:var(--card)}
+.chapter-nav a:hover{border-color:var(--accent);color:var(--accent)}
+section.chapter{padding-top:2.4em;margin-top:1.2em;border-top:3px solid var(--accent-soft)}
+section.chapter:first-of-type{border-top:none;margin-top:0;padding-top:0}
+</style>
+</head>
+<body>
+<nav class="chapter-nav">
+<a href="#chapter-1">Ch1 简介</a>
+<a href="#chapter-2">Ch2 UI</a>
+<a href="#chapter-3">Ch3 Models</a>
+</nav>
+<div class="wrap">
+<section class="chapter" id="chapter-1">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 1 — Introduction to Mobile Application Development</h1>
+  <p class="lede">这份笔记设计成可以取代 slide：没上过课、不翻原本讲义也能读懂。Slide 上 5 页「Question?」原本没有答案，全部补上；比较表有两处讲法不准确，另外标出。术语一律保留英文，每个概念附一句考试用的英文答题句。</p>
+</header>
+
+<h2 id="c1-s0">0. 总览</h2>
+
+<p>这一章分两大块。<strong>前半（slide 3–31）讲行业现状</strong>：app 有哪几种、用什么语言写、有哪些作业系统、手机有什么先天限制。<strong>后半（slide 32–60）讲 Android 怎么运作</strong>：一个 APK 里有什么、系统怎么隔离每个 app、四大 component 是什么、component 之间怎么互相调用。</p>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c1-s1">App 的三种类型</a> — Native / Hybrid / Web</li>
+<li><a href="#c1-s2">程式语言与开发工具</a></li>
+<li><a href="#c1-s3">Mobile Operating Systems</a> <span class="tag">考卷 Q1a</span></li>
+<li><a href="#c1-s4">四大挑战</a> — CPU / Memory / Battery / Network</li>
+<li><a href="#c1-s5">Beyond Mobile App</a></li>
+<li><a href="#c1-s6">Android Fundamentals</a> — APK、Sandbox、Permission</li>
+<li><a href="#c1-s7">四大 Component（A-B-C-S）</a> <span class="tag">高频</span></li>
+<li><a href="#c1-s8">Component 互相启动与 Intent</a></li>
+<li><a href="#c1-s9">Manifest File 与 App Resources</a></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>看过 MyGOV Malaysia 那份卷（2 小时 · 4 题 × 25 marks · 全答 · case study）：<strong>Q1(a) 完全出自这一章</strong>——「Examine TWO (2) types of mobile OS that support the app (6 marks) / Justify why these two help it run effectively (4 marks)」，共 10 分。第 3 节有完整的满分答法。</p>
+<p>另外 Q2(c) 考 explicit / implicit intent，本章第 8 节先建立概念，细节在 Chapter 3。</p>
+</div>
+
+<h4>前置知识</h4>
+<p>这一章几乎不需要先备知识，只有三个词如果不熟会卡住：</p>
+<ul>
+<li><strong>Kernel（核心）</strong> — 作业系统最底层的程式，负责管理 CPU、记忆体和硬体。应用程式要碰硬体都得经过它。</li>
+<li><strong>Process（行程）</strong> — 一个正在执行中的程式实例。作业系统给每个 process 独立的记忆体空间，彼此看不到对方。</li>
+<li><strong>API level</strong> — Android 版本的编号。Android 6.0 = API 23、Android 10 = API 29，以此类推。Slide 上两种写法混用。</li>
+</ul>
+
+<h2 id="c1-s1">1. App 的三种类型</h2>
+
+<h3>1.1 三个定义</h3>
+<div class="tw">
+<table>
+<tr><th>类型</th><th>它到底是什么</th><th>装在哪</th></tr>
+<tr><td><strong>Native app</strong></td><td>用该平台原生语言写、编译成该平台机器码的 app。Android 用 Kotlin / Java，iOS 用 Swift</td><td>装进手机（APK / IPA）</td></tr>
+<tr><td><strong>Mobile Web app</strong></td><td>其实就是针对手机萤幕优化的网站，用浏览器打开</td><td>不用装，跑在浏览器里</td></tr>
+<tr><td><strong>Hybrid app</strong></td><td>外壳是 native app（所以能上架、能安装），里面塞一个隐藏的浏览器（WebView）来跑 HTML / CSS / JS</td><td>装进手机，但内容是网页</td></tr>
+</table>
+</div>
+
+<p><strong>类比：开餐厅。</strong>Native = 自己盖一间店，装修完全配合当地（贵、慢，但最好用）。Mobile Web = 只开一个外卖网页，客人用浏览器点（便宜，但碰不到任何设备功能）。Hybrid = 把同一套厨房（网页）放进不同城市的店面外壳里（一套 code，多个平台）。</p>
+
+<h3>1.2 比较表</h3>
+<div class="tw">
+<table>
+<tr><th>比较项</th><th>Native</th><th>Hybrid</th><th>Mobile Web</th><th>为什么</th></tr>
+<tr><td>Cost</td><td>High</td><td>Low</td><td>Low</td><td>Native 每个平台各写一次，人力翻倍</td></tr>
+<tr><td>Performance</td><td>Fast</td><td>看网速 *</td><td>看网速</td><td>见下方 ⚠️</td></tr>
+<tr><td>Distribution</td><td>App stores</td><td>App stores</td><td>None</td><td>Hybrid 有 native 外壳，照样能上架</td></tr>
+<tr><td>Device features</td><td>Wide</td><td>Limited</td><td>Very limited</td><td>浏览器对硬体的存取权限有限</td></tr>
+<tr><td>Code maintenance</td><td>Multiple codebase</td><td>Single codebase</td><td>Single codebase</td><td>这是 hybrid 最大卖点</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+<span class="lab">⚠️ Slide 6 这里不准确</span>
+<p>Slide 把 Hybrid 的 performance 写成「Depending on speed of network」。但 hybrid app 的 HTML / JS 是<strong>打包在 APK 里</strong>的，开 app 不需要下载页面。它慢的真正原因是<strong>多了一层 WebView 在中间翻译</strong>（JS → 原生控件渲染），不是网速。真正完全看网速的只有 Mobile Web。</p>
+<p><strong>考试策略：</strong>题目直接抄 slide 问，就照 slide 答。但若问「为什么 hybrid 比 native 慢」，写 <strong>WebView 中间层 + 非原生渲染</strong> 会更准确。</p>
+</div>
+
+<h3>1.3 怎么判断该用哪一种</h3>
+
+<figure>
+<svg viewBox="0 0 700 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="选择 app 类型的决策树">
+<defs>
+<marker id="c1-ar1" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="13" fill="var(--d-text)">
+
+<rect x="8" y="16" width="320" height="52" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="24" y="38">需要大量硬体功能／要很流畅／</text>
+<text x="24" y="56">要能离线使用？</text>
+
+<rect x="8" y="128" width="320" height="52" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="24" y="150">要上架 app store ＋ 预算有限 ＋</text>
+<text x="24" y="168">要同时支援多平台？</text>
+
+<rect x="8" y="240" width="320" height="52" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="24" y="262">只是展示资讯／内容常变／</text>
+<text x="24" y="280">不想让人安装？</text>
+
+<line x1="168" y1="68" x2="168" y2="128" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c1-ar1)"/>
+<text x="176" y="102" fill="var(--d-muted)" font-size="12">NO</text>
+<line x1="168" y1="180" x2="168" y2="240" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c1-ar1)"/>
+<text x="176" y="214" fill="var(--d-muted)" font-size="12">NO</text>
+
+<line x1="328" y1="42" x2="452" y2="42" stroke="var(--d-accent)" stroke-width="1.8" marker-end="url(#c1-ar1)"/>
+<text x="372" y="34" fill="var(--d-accent)" font-size="12" font-weight="700">YES</text>
+<line x1="328" y1="154" x2="452" y2="154" stroke="var(--d-accent)" stroke-width="1.8" marker-end="url(#c1-ar1)"/>
+<text x="372" y="146" fill="var(--d-accent)" font-size="12" font-weight="700">YES</text>
+<line x1="328" y1="266" x2="452" y2="266" stroke="var(--d-accent)" stroke-width="1.8" marker-end="url(#c1-ar1)"/>
+<text x="372" y="258" fill="var(--d-accent)" font-size="12" font-weight="700">YES</text>
+
+<rect x="462" y="20" width="220" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="478" y="40" font-weight="700" font-size="14">Native</text>
+<text x="478" y="58" fill="var(--d-muted)" font-size="11.5">游戏、相机辨识、导航、银行</text>
+
+<rect x="462" y="132" width="220" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="478" y="152" font-weight="700" font-size="14">Hybrid</text>
+<text x="478" y="170" fill="var(--d-muted)" font-size="11.5">商场 app、会员 app、内部工具</text>
+
+<rect x="462" y="244" width="220" height="46" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="478" y="264" font-weight="700" font-size="14">Mobile Web</text>
+<text x="478" y="282" fill="var(--d-muted)" font-size="11.5">新闻、活动资讯、短期宣传站</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>顺序不能换。先问硬体需求——只要答 YES 就必须 Native，后面两题不用问了。这题型的考法是给你三个机构要你分别判断，所以每个答案都要附一句理由。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅ Slide 7 的答案（slide 没给）</span>
+<div class="tw">
+<table>
+<tr><th>机构</th><th>建议</th><th>理由</th></tr>
+<tr><td><strong>a. Bernama</strong>（国家新闻社）</td><td>Mobile Web（或 Hybrid）</td><td>内容是文字图片、每天更新、不需硬体功能。网页版不用审核即可更新，用户也不必安装</td></tr>
+<tr><td><strong>b. Super Mario Bros</strong>（游戏）</td><td>Native</td><td>要高帧率、要用 GPU、要离线玩、要接 in-app purchase。WebView 会掉帧</td></tr>
+<tr><td><strong>c. Setapak Central</strong>（商场）</td><td>Hybrid</td><td>要上架（品牌、push notification、会员卡），但促销与商户名单常变，用网页排版最好更新，预算也有限</td></tr>
+</table>
+</div>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>A native app is written in the platform's own language and compiled for that platform, giving the best performance and the widest access to device features, but it requires a separate codebase for each platform. A mobile web app runs in the browser with a single codebase and no installation, but has very limited access to device features. A hybrid app wraps web content in a native shell, so it can be published on app stores with one codebase, at the cost of performance.</p>
+</div>
+
+<h2 id="c1-s2">2. 程式语言与开发工具</h2>
+
+<div class="tw">
+<table>
+<tr><th></th><th>语言</th></tr>
+<tr><td><strong>Native — Android</strong></td><td><strong>Kotlin</strong>（Google 首选）、Java、C++（透过 NDK，只用于高效能部分）</td></tr>
+<tr><td><strong>Native — iOS</strong></td><td><strong>Swift</strong>、Objective-C</td></tr>
+<tr><td><strong>Web / Hybrid</strong></td><td>HTML5 + CSS3 + JavaScript</td></tr>
+</table>
+</div>
+
+<div class="tw">
+<table>
+<tr><th>类别</th><th>工具</th></tr>
+<tr><td><strong>Native IDE</strong></td><td>Android Studio · Xcode · Tizen Studio · Visual Studio · Huawei Quick App</td></tr>
+<tr><td><strong>Cross-platform</strong></td><td>React Native · Flutter · Xamarin · PhoneGap · Apache Weex · NativeScript · Jasonette · Ionic</td></tr>
+<tr><td><strong>KMM</strong><br>(Kotlin Multiplatform Mobile)</td><td>用 Kotlin 写<strong>共用的商业逻辑</strong>（网络请求、资料库、运算），UI 各平台仍写各自的原生 UI（Android 用 Compose、iOS 用 SwiftUI）。省一半 code 又不牺牲原生手感</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+<span class="lab">⚠️ Slide 把两件事混在一起了</span>
+<p>Slide 9 和 11 把 React Native、Flutter 跟 Ionic、PhoneGap 全部归成 hybrid / cross-platform。严格来说：<strong>Hybrid（Ionic、PhoneGap）</strong>是用 WebView 跑网页，真的比较慢；<strong>Cross-platform native（React Native、Flutter）</strong>会编译或映射成<strong>真正的原生控件</strong>，效能接近 native。</p>
+<p>考试问「hybrid 的例子」，答哪一个都会被接受（因为 slide 这样分类），但心里要分清楚。</p>
+<p>同理 Slide 33 写「Java, Kotlin, C++」三个并列。实际上 <strong>Kotlin 自 2019 年起是 Google 官方首选（Kotlin-first）</strong>，而 C++ 不能单独写一个 app，只能透过 NDK 写模组给 Kotlin / Java 呼叫。</p>
+</div>
+
+<h2 id="c1-s3">3. Mobile Operating Systems <span class="tag">考卷 Q1a</span></h2>
+
+<h3>3.1 市占率</h3>
+<p>Slide 14 是 Statcounter 的全球资料（2022 Jan – 2023 Jan）：<strong>Android 约 70–72%，iOS 约 27–28%</strong>，其余（Samsung / Tizen、KaiOS、Windows、Nokia）加起来几乎是 0%，在图上是贴着底线的一条平线。两者合计<strong>超过 98%</strong>。</p>
+
+<h3>3.2 六个 OS 对照</h3>
+<div class="tw">
+<table>
+<tr><th>OS</th><th>Kernel</th><th>开源</th><th>背景 / 装置</th></tr>
+<tr><td><strong>Android</strong></td><td>Linux kernel</td><td>✅</td><td>Google；手机、平板。同源的 Chrome OS 也是 Linux-based、open source</td></tr>
+<tr><td><strong>iOS</strong></td><td>Unix kernel</td><td>❌</td><td>Apple；iPhone、iPad；与 macOS 同源</td></tr>
+<tr><td><strong>Tizen</strong></td><td>Linux kernel</td><td>✅</td><td>Samsung；智慧电视、手表、家电</td></tr>
+<tr><td><strong>KaiOS</strong></td><td>Linux kernel</td><td>✅</td><td>功能型手机（feature phone）；app 用 HTML5 写；印度、非洲等新兴市场</td></tr>
+<tr><td><strong>Harmony OS</strong></td><td><strong>Microkernel</strong></td><td>✅</td><td>Huawei；手机 + IoT 全场景</td></tr>
+<tr><td><strong>Fuchsia</strong></td><td><strong>Microkernel</strong></td><td>✅</td><td>Google；<strong>module architecture</strong>；跑在 ARM-based Nest Hub</td></tr>
+</table>
+</div>
+
+<p><strong>记忆法：</strong>前四个是 Linux kernel，后两个（Harmony、Fuchsia）是 Microkernel。<strong>只有 iOS 不开源。</strong></p>
+
+<div class="box warn">
+<span class="lab">💡 Monolithic vs Microkernel（slide 完全没解释）</span>
+<p><strong>Monolithic kernel（Linux）</strong>：驱动程式、档案系统全部塞在 kernel 里 → 快，但一个驱动当掉整个系统跟着当。</p>
+<p><strong>Microkernel</strong>：kernel 只留最核心的（排程、记忆体、行程间通讯），其他都推到外面当一般程式 → 稳定、安全、容易移植到不同装置，代价是模组间沟通多一层、稍慢。</p>
+<p>这就是 Harmony 和 Fuchsia 选 microkernel 的原因：它们的目标是<strong>同一套 OS 跑在从手表到汽车的所有装置上</strong>。被追问时讲得出这点会很加分。</p>
+</div>
+
+<h3>3.3 考卷 Q1(a) 满分答法</h3>
+<p class="lede" style="font-style:italic">"Examine TWO (2) types of mobile OS that support the MyGOV Malaysia mobile app on mobile devices. (6 marks) / Justify why these two mobile OS help the app run effectively. (4 marks)"</p>
+
+<h4>(i) 两个 OS — 6 marks，每个约 3 分 = 名称 + kernel/背景 + 装置范围</h4>
+<ol>
+<li><strong>Android</strong> — Google 开发，以 Linux kernel 为基础的 open source OS，被 Samsung、Xiaomi、Oppo、Huawei 等众多厂商采用，占全球约 70% 市占，涵盖从入门到旗舰的各价位手机。</li>
+<li><strong>iOS</strong> — Apple 开发，以 Unix kernel 为基础的封闭原始码 OS，只跑在 iPhone / iPad 上，占约 28% 市占。</li>
+</ol>
+
+<h4>(ii) Justify — 4 marks，写 2 点，每点连回 MyGOV 的需求</h4>
+<ul>
+<li><strong>覆盖率</strong>：两者合计超过 98% 的手机用户。MyGOV 是全民政府服务，必须涵盖城乡所有人；Android 在入门机市场占绝对多数，正好照顾乡区低价手机用户。</li>
+<li><strong>原生安全能力</strong>：两个 OS 都提供成熟的 permission 机制、加密储存与生物认证 API。MyGOV 要整合 MyDigital ID 单一登入与 ePayment，必须依靠 OS 层级的 security sandbox 才能保护身份与交易资料。</li>
+<li>（备用第三点）两者都有官方 app store，能安全派送更新与推播通知，让「即时申请状态追踪」这个功能可行。</li>
+</ul>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>Android is an open-source mobile OS built on the Linux kernel and used by many hardware manufacturers, while iOS is Apple's closed-source OS built on a Unix kernel and running only on Apple devices. Together they cover over 98% of mobile users, and both provide mature permission models and secure storage APIs, which the app needs for digital-ID login and in-app payment.</p>
+</div>
+
+<h2 id="c1-s4">4. 四大挑战</h2>
+
+<div class="tw">
+<table>
+<tr><th>挑战</th><th>低阶机 ←→ 旗舰（Slide 24）</th><th>对开发者的意义</th></tr>
+<tr><td><strong>Processing power</strong></td><td>Quad-core ←→ Octa-core (SD 888) / Hexa-core (A12)</td><td>动画、图片处理不能太重；重活丢到背景执行绪</td></tr>
+<tr><td><strong>Memory &amp; storage</strong></td><td>2 GB RAM / 8 GB ROM ←→ 12 GB RAM / 256 GB ROM</td><td>APK 要小；记忆体不够时 Android 会<strong>直接杀掉你的 process</strong></td></tr>
+<tr><td><strong>Battery</strong></td><td>2150 mAh ←→ 6000 mAh</td><td>减少 GPS、网络轮询、唤醒次数</td></tr>
+<tr><td><strong>Network</strong></td><td>3G / 4G ←→ 4G / 5G</td><td>要能在慢网、断网下运作；要压缩、要快取</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+<span class="lab">⚠️ 这里埋了 Chapter 3 的伏笔</span>
+<p>「记忆体不够会杀 process」不只是效能问题——你的 Activity 被杀掉时<strong>状态会丢失</strong>，这就是 Chapter 3 要学 <code>onSaveInstanceState</code> 的原因。Slide 没把这两件事连起来，但考试很爱这样串。</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Slide 25 的答案 — 新兴市场（如印度）怎么做</span>
+<div class="tw">
+<table>
+<tr><th>挑战</th><th>做法</th></tr>
+<tr><td>Processing power</td><td>简化 UI 动画与版面层级，避免复杂即时运算；影像处理等重工作放到 server 做</td></tr>
+<tr><td>Memory &amp; storage</td><td>控制 APK 大小（用 App Bundle 按装置只下载需要的资源、压缩图片、移除不必要函式库）；提供 lite 版本</td></tr>
+<tr><td>Battery</td><td>减少背景服务与定位更新频率；用批次同步取代频繁轮询；大型同步排在充电或 Wi-Fi 时</td></tr>
+<tr><td>Network</td><td>支援离线模式（本地快取，连上网再同步）；传输用轻量 JSON、低解析图；失败自动重试</td></tr>
+</table>
+</div>
+<p>再补一个跨项目的重点：<strong>支援较旧的 Android 版本（低 minSdk）</strong>，因为新兴市场手机系统版本普遍偏旧。</p>
+</div>
+
+<h2 id="c1-s5">5. Beyond Mobile App</h2>
+<p>手机 app 的技术正在往外扩：</p>
+<ul>
+<li><strong>装置面</strong>：Wearable（手表、手环）、Smart Home Appliance、Smart Car Dashboard、<strong>IoT</strong></li>
+<li><strong>技术面</strong>：<strong>AR</strong>（扩增实境）、<strong>AI</strong>、<strong>Blockchain</strong></li>
+</ul>
+<p>Slide 29–31 是几张示范画面（没有文字），内容是 Google Lens——相机对准一只狗，画面下方立刻跳出「Labradoodle · Dog breed」和品种说明。这正是 AI + 相机的典型应用。</p>
+<p>考试要点：这些装置<strong>共用同一套 app 生态</strong>，而手机常常是它们的「遥控器 + 大脑」（手表本身算力不够，靠手机连线）。</p>
+
+<h2 id="c1-s6">6. Android Application Fundamentals</h2>
+
+<h3>6.1 APK 里有三样东西</h3>
+<p><strong>Android package (APK) = Compiled Code + Resources + Data</strong></p>
+<ul>
+<li><strong>Compiled code</strong>：Kotlin / Java 编译后的 DEX 档 + C++ 的 native library</li>
+<li><strong>Resources</strong>：图片、layout、字串、颜色、menu、动画</li>
+<li><strong>Data / 其他</strong>：AndroidManifest.xml、签章、assets</li>
+</ul>
+
+<div class="box ok">
+<span class="lab">✅ Slide 42 Q1 — 为什么 APK 要包含三个不同的部分？</span>
+<p>因为三者的角色不同：<strong>code 是行为</strong>（做什么）、<strong>resource 是外观与文字</strong>（长什么样）、<strong>data / manifest 是宣告与设定</strong>（有哪些 component、要什么权限）。</p>
+<p>把 resource 和 code 分开的好处是<strong>同一份 code 可以配不同的 resource</strong>——换语言（英文 / 马来文）、换萤幕尺寸、换深色模式，都不用改 code，系统在执行时自动挑对应的 resource。这正是 MyGOV 能做到 multilingual 的基础。</p>
+</div>
+
+<h3>6.2 Security Sandbox</h3>
+<p>每个 Android app 住在自己的<strong>安全沙盒</strong>里。五句话（考试照这五点写就够）：</p>
+<ol>
+<li>每个 app 对 OS 来说是<strong>一个不同的使用者</strong></li>
+<li>系统给每个 app 一个<strong>独一无二的 Linux User ID (UID)</strong></li>
+<li>系统为该 app 的所有档案设定权限，<strong>只有那个 UID 能读写</strong></li>
+<li>每个 app 跑在<strong>自己的 Linux process</strong> 里</li>
+<li>每个 process 有<strong>自己的 virtual machine (VM)</strong></li>
+</ol>
+
+<figure>
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Android security sandbox：一般情况与共用 UID 的对照">
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<text x="8" y="16" font-size="12.5" font-weight="700" fill="var(--d-muted)">一般情况：各自独立</text>
+<text x="380" y="16" font-size="12.5" font-weight="700" fill="var(--d-muted)">共用 UID ＋ 同一张凭证</text>
+
+<rect x="8" y="26" width="150" height="160" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="20" y="46" font-weight="700" font-size="13">App 1</text>
+<text x="20" y="64" fill="var(--d-muted)">UID 100</text>
+<rect x="20" y="74" width="126" height="58" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="32" y="93">Process</text>
+<rect x="32" y="101" width="102" height="24" rx="4" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="42" y="117" font-size="11.5">Virtual Machine</text>
+<rect x="20" y="140" width="126" height="28" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="32" y="158">Data</text>
+
+<rect x="176" y="26" width="150" height="160" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="188" y="46" font-weight="700" font-size="13">App 2</text>
+<text x="188" y="64" fill="var(--d-muted)">UID 101</text>
+<rect x="188" y="74" width="126" height="58" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="200" y="93">Process</text>
+<rect x="200" y="101" width="102" height="24" rx="4" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="210" y="117" font-size="11.5">Virtual Machine</text>
+<rect x="188" y="140" width="126" height="28" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="200" y="158">Data</text>
+
+<line x1="167" y1="36" x2="167" y2="176" stroke="var(--d-stroke)" stroke-width="2" stroke-dasharray="5 4"/>
+<circle cx="167" cy="106" r="13" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="162" y="111" font-size="13" font-weight="700" fill="var(--d-muted)">✕</text>
+
+<rect x="380" y="26" width="312" height="160" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="394" y="46" font-weight="700" font-size="13">App 1</text>
+<text x="394" y="64" fill="var(--d-muted)">UID 100</text>
+<text x="568" y="46" font-weight="700" font-size="13">App 2</text>
+<text x="568" y="64" fill="var(--d-muted)">UID 100</text>
+<rect x="394" y="74" width="284" height="58" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="406" y="93">同一个 Process</text>
+<rect x="406" y="101" width="260" height="24" rx="4" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="416" y="117" font-size="11.5">同一个 Virtual Machine</text>
+<rect x="394" y="140" width="284" height="28" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="406" y="158">共用 Data</text>
+
+<rect x="8" y="204" width="684" height="76" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="24" y="228" font-weight="700" fill="var(--d-muted)">Phone CPU</text>
+<text x="24" y="250" fill="var(--d-muted)">Phone Memory</text>
+<text x="24" y="270" fill="var(--d-muted)">Phone Storage</text>
+<text x="200" y="250" fill="var(--d-muted)" font-size="11.5">两边都跑在同一台手机的硬体上——隔离是 OS 做的，不是硬体做的</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>左边虚线加 ✕ 是重点——App 1 看不到 App 2 的 Data。右边是 slide 38–39 的特例：两个 app 用<b>相同 UID 且用同一张凭证签署</b>时，会合并成一个 process、一个 VM，因此能互相读写档案，也<b>节省系统资源</b>。注意右边已经没有那条隔离线了。</figcaption>
+</figure>
+
+<p><strong>类比：公寓大楼。</strong>每个 app 是一间单位，UID 是门牌号码，Linux 的档案权限是门锁。你只能进自己那间；要进别人家必须对方开门（Content Provider）或管理处批准（permission）。</p>
+
+<div class="box warn">
+<span class="lab">💡 补充：这个 VM 叫 ART</span>
+<p>Slide 只写「its own virtual machine」。这个 VM 是 <strong>ART（Android Runtime）</strong>，自 Android 5.0 起取代旧的 Dalvik VM。所有 app process 都是从一个叫 <strong>Zygote</strong> 的母 process fork 出来的，所以启动快、共用的系统类别只载入一次。考试写「its own VM」就够，能说出 ART 是加分项。</p>
+</div>
+
+<h3>6.3 The Principle of Least Privilege</h3>
+<p><strong>最小权限原则：每个 app 预设只拿到完成工作所需的最低限度存取权，多一分都不给。没有被授权的部分，app 完全碰不到。</strong></p>
+<p>沙盒是<strong>手段</strong>，最小权限是<strong>目的</strong>——这两个概念常被混着问，要分清楚。</p>
+
+<h3>6.4 共用资料的条件</h3>
+<ul>
+<li>两个 app 使用<strong>相同的 Linux user ID</strong> → 就能读写对方的档案</li>
+<li>条件：两个 app 必须用<strong>同一张凭证（certificate）签署</strong></li>
+<li>附带效果：它们跑在<strong>同一个 Linux process、共用同一个 VM</strong>，<strong>节省系统资源</strong></li>
+</ul>
+
+<div class="box warn">
+<span class="lab">⚠️ Slide 没说的：这个做法已经被弃用</span>
+<p><code>sharedUserId</code> 自 <strong>API 29 起被官方 deprecated</strong>，因为它破坏沙盒隔离，而且一旦在已发布版本设定就无法移除。现在的正规做法是 <strong>Content Provider + 自订 permission</strong>。</p>
+<p><strong>考试策略：</strong>题目问「两个 app 如何共用资料」→ 照 slide 答 same UID + same certificate（这是考点）。问「建议一个安全的做法」→ 答 Content Provider。</p>
+</div>
+
+<h3>6.5 Permission</h3>
+<ul>
+<li>App 可<strong>向使用者请求权限</strong>存取装置资料：contact、SMS、storage、camera、Bluetooth、location 等</li>
+<li><strong>Android 5 及以下</strong>：所有权限在 <strong>install time</strong> 一次过批准（不给就不能装）</li>
+<li><strong>Android 6 及以上</strong>：在 <strong>runtime</strong> 请求（用到才问，用户可单独拒绝某一项，也可事后到设定关掉）</li>
+</ul>
+<p><strong>为什么要改成 runtime？</strong>因为 install-time 是「全有或全无」——用户为了装 app 只好全部接受，等于没有选择。Runtime permission 让用户在<strong>具体情境</strong>下判断（「这个 app 现在要开相机做什么？」），符合最小权限原则。</p>
+<p>补充（不在 slide）：即使在 Android 6 以上，<strong>normal permission</strong>（如 INTERNET、振动）仍是安装时自动给的，只有 <strong>dangerous permission</strong>（相机、定位、联络人、麦克风）才需要 runtime 请求。Android 13 起连通知（POST_NOTIFICATIONS）也要 runtime 请求。</p>
+
+<div class="box ok">
+<span class="lab">✅ Slide 42 Q2 — Android 保护 app 资料与使用者安全的两个方式</span>
+<ol>
+<li><strong>Application sandbox（UID 隔离）</strong>：每个 app 被指派独立的 Linux UID，跑在独立的 process 和 VM 中，档案权限只允许该 UID 存取，因此一个 app 无法直接读取另一个 app 的资料；就算某个 app 被入侵，损害也被关在它自己的沙盒里。</li>
+<li><strong>Permission 机制（最小权限原则）</strong>：app 预设没有任何存取装置敏感资料的权力，必须在 manifest 宣告并取得使用者同意（Android 6 起是 runtime 逐项批准）才能存取相机、定位、联络人等，使用者随时可以撤回。</li>
+</ol>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>Android protects user data in two main ways. First, the application sandbox: the system gives every app a unique Linux user ID and runs it in its own process with its own virtual machine, and file permissions allow only that UID to access the app's files. Second, the permission model: by default an app has access only to what it needs (the principle of least privilege), and it must declare permissions in the manifest and obtain the user's consent — granted at runtime from Android 6.0 onwards — before accessing sensitive resources such as the camera, location or contacts.</p>
+</div>
+
+<h2 id="c1-s7">7. 四大 App Components：A-B-C-S <span class="tag">高频</span></h2>
+
+<p><strong>记忆法：Slide 自己给的 <code>ABCS</code></strong> — <strong>A</strong>ctivities、<strong>B</strong>roadcast Receiver、<strong>C</strong>ontent Provider、<strong>S</strong>ervices。</p>
+
+<figure>
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="四大 app component 对照">
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="6" y="10" width="164" height="230" rx="9" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="20" y="34" font-weight="700" font-size="14">Activity</text>
+<rect x="20" y="44" width="136" height="60" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<rect x="28" y="52" width="120" height="14" rx="3" fill="var(--d-fill3)"/>
+<rect x="28" y="72" width="80" height="9" rx="3" fill="var(--d-fill3)"/>
+<rect x="28" y="86" width="100" height="9" rx="3" fill="var(--d-fill3)"/>
+<text x="20" y="128" font-weight="700" fill="var(--d-accent)" font-size="11.5">有 UI · 一个画面</text>
+<text x="20" y="152" fill="var(--d-muted)" font-size="11.5">与用户互动</text>
+<text x="20" y="172" fill="var(--d-muted)" font-size="11.5">用 Intent 启动</text>
+<text x="20" y="200" font-size="11.5">例：登入画面</text>
+<text x="20" y="220" font-size="11.5">一个是 main activity</text>
+
+<rect x="178" y="10" width="164" height="230" rx="9" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<text x="192" y="34" font-weight="700" font-size="14">Broadcast Receiver</text>
+<rect x="192" y="48" width="136" height="52" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="228" y="79" fill="var(--d-muted)" font-size="11.5">（无 UI）</text>
+<text x="192" y="128" font-weight="700" fill="var(--d-muted)" font-size="11.5">无 UI · 可发通知</text>
+<text x="192" y="152" fill="var(--d-muted)" font-size="11.5">回应系统／app 事件</text>
+<text x="192" y="172" fill="var(--d-muted)" font-size="11.5">用 Intent 启动</text>
+<text x="192" y="200" font-size="11.5">例：开机、电量低</text>
+<text x="192" y="220" font-size="11.5">必须先 register</text>
+
+<rect x="350" y="10" width="164" height="230" rx="9" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<text x="364" y="34" font-weight="700" font-size="14">Content Provider</text>
+<rect x="364" y="48" width="136" height="52" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="400" y="79" fill="var(--d-muted)" font-size="11.5">（无 UI）</text>
+<text x="364" y="128" font-weight="700" fill="var(--d-accent)" font-size="11.5">无 UI · 不用 Intent！</text>
+<text x="364" y="152" fill="var(--d-muted)" font-size="11.5">跨 app 分享资料</text>
+<text x="364" y="172" fill="var(--d-muted)" font-size="11.5">用 ContentResolver</text>
+<text x="364" y="200" font-size="11.5">例：联络人、字典</text>
+<text x="364" y="220" font-size="11.5">content:// URI</text>
+
+<rect x="522" y="10" width="164" height="230" rx="9" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.4"/>
+<text x="536" y="34" font-weight="700" font-size="14">Service</text>
+<rect x="536" y="48" width="136" height="52" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="572" y="79" fill="var(--d-muted)" font-size="11.5">（无 UI）</text>
+<text x="536" y="128" font-weight="700" fill="var(--d-muted)" font-size="11.5">无 UI · 背景执行</text>
+<text x="536" y="152" fill="var(--d-muted)" font-size="11.5">长时间工作</text>
+<text x="536" y="172" fill="var(--d-muted)" font-size="11.5">用 Intent 启动</text>
+<text x="536" y="200" font-size="11.5">例：播音乐、同步</text>
+<text x="536" y="220" font-size="11.5">由其他 component 启动</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>只有最左边那个有 UI。而第三个（Content Provider）是唯一<b>不用 Intent 启动</b>的——Slide 55 写「Use Intent to activate Activities, Services, and Broadcast Receivers」，刻意没写 Content Provider，很多人读过去没注意到。这是极好的考题材料。</figcaption>
+</figure>
+
+<h3>7.1 Activity</h3>
+<ul>
+<li><strong>一个 Activity = 一个画面（screen）</strong></li>
+<li>提供一个 <strong>window</strong> 来画出使用者介面（UI）</li>
+<li>一个 app 通常由<strong>多个 activity</strong> 组成</li>
+<li>其中一个是 <strong>"main" activity</strong>，是启动 app 时开的那一个</li>
+</ul>
+<p>MyGOV 的例子：登入画面、服务目录、申请表单、付款画面——每一个都是一个 Activity。</p>
+
+<h3>7.2 Broadcast Receiver</h3>
+<ul>
+<li>是系统与 app 之间的<strong>讯息系统（messaging system）</strong></li>
+<li><strong>没有 UI</strong>，但可以发出 <strong>status bar notification</strong></li>
+<li>App 必须<strong>先注册（register）</strong>才能收到某个事件</li>
+<li>系统广播会送给<strong>所有订阅了该事件的 app</strong>，例如 battery low、system reboot</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Broadcast Receiver 四步流程">
+<defs>
+<marker id="c1-ar2" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="46" width="130" height="52" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="26" y="70" font-weight="700" font-size="13">WhatsApp</text>
+<text x="26" y="88" fill="var(--d-muted)" font-size="11">（你的 app）</text>
+
+<rect x="286" y="46" width="130" height="52" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="308" y="76" font-weight="700" font-size="13">Android OS</text>
+
+<rect x="562" y="46" width="130" height="52" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="596" y="70" font-weight="700" font-size="13">手机</text>
+<text x="580" y="88" fill="var(--d-muted)" font-size="11">重新开机</text>
+
+<rect x="286" y="152" width="130" height="48" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="322" y="181" font-weight="700" font-size="13">Server</text>
+
+<line x1="138" y1="58" x2="284" y2="58" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar2)"/>
+<circle cx="200" cy="40" r="11" fill="var(--d-accent)"/>
+<text x="196" y="45" font-size="12" font-weight="700" fill="var(--d-fill)">1</text>
+<text x="168" y="30" font-size="11.5" fill="var(--d-muted)">Register</text>
+
+<line x1="560" y1="66" x2="418" y2="66" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar2)"/>
+<circle cx="490" cy="40" r="11" fill="var(--d-accent)"/>
+<text x="486" y="45" font-size="12" font-weight="700" fill="var(--d-fill)">2</text>
+<text x="450" y="30" font-size="11.5" fill="var(--d-muted)">Phone reboot</text>
+
+<line x1="284" y1="88" x2="140" y2="88" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar2)"/>
+<circle cx="212" cy="116" r="11" fill="var(--d-accent)"/>
+<text x="208" y="121" font-size="12" font-weight="700" fill="var(--d-fill)">3</text>
+<text x="152" y="122" font-size="11.5" fill="var(--d-muted)">Broadcast "phone reboot"</text>
+
+<path d="M73,98 L73,176 L284,176" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar2)"/>
+<circle cx="160" cy="176" r="11" fill="var(--d-accent)"/>
+<text x="156" y="181" font-size="12" font-weight="700" fill="var(--d-fill)">4</text>
+<text x="176" y="168" font-size="11.5" fill="var(--d-muted)">Request new message</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>重点在「被动」。第 1 步是 app 还活着的时候<b>先登记</b>「我要听开机事件」；之后 app 关掉也没关系，第 3 步是<b>系统主动把它叫醒</b>。这就是为什么关机重开后 WhatsApp 不用你手动开就能收讯息。Slide 47 是同一个模式，事件换成 new email，第 4 步换成 open email。</figcaption>
+</figure>
+
+<h3>7.3 Content Provider</h3>
+<ul>
+<li>管理对一个<strong>中央资料仓库的存取</strong></li>
+<li>资料可以存在：<strong>file system、SQLite database、网络／云端</strong></li>
+<li>提供<strong>持久性储存位置（persistent storage）</strong></li>
+<li><strong>其他 app 可以查询、甚至修改</strong>这些资料（需要权限）</li>
+<li>例子：User Dictionary（你打字学过的词）；Contacts、MediaStore 也是</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Content Provider 作为统一存取窗口">
+<defs>
+<marker id="c1-ar3" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+<marker id="c1-ar3b" markerWidth="9" markerHeight="9" refX="1" refY="3.2" orient="auto">
+<path d="M7,0 L0,3.2 L7,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="258" y="6" width="184" height="42" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)" opacity="0.5"/>
+<rect x="268" y="14" width="184" height="42" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)" opacity="0.75"/>
+<rect x="278" y="22" width="184" height="42" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="338" y="48" font-weight="700" font-size="13">Application</text>
+
+<line x1="370" y1="64" x2="370" y2="104" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar3)" marker-start="url(#c1-ar3b)"/>
+<text x="384" y="88" font-size="11.5" fill="var(--d-muted)">content:// URI ＋ permission</text>
+
+<rect x="258" y="106" width="184" height="50" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="292" y="130" font-weight="700" font-size="13">Content Provider</text>
+<text x="300" y="148" font-size="11" fill="var(--d-muted)">唯一的对外窗口</text>
+
+<path d="M370,156 L370,178 L180,178 L180,196" fill="none" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c1-ar3)"/>
+<path d="M370,156 L370,178 L560,178 L560,196" fill="none" stroke="var(--d-stroke)" stroke-width="1.5" marker-end="url(#c1-ar3)"/>
+
+<rect x="100" y="198" width="160" height="38" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="132" y="216" font-size="12">SQLite database</text>
+<text x="146" y="231" font-size="10.5" fill="var(--d-muted)">Data Storage</text>
+
+<rect x="480" y="198" width="160" height="38" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="522" y="216" font-size="12">File system / 云端</text>
+<text x="526" y="231" font-size="10.5" fill="var(--d-muted)">Data Storage</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>价值在<b>「统一窗口 + 隐藏实作」</b>。外面的 app 只用一个 <code>content://</code> URI 来 query，完全不必知道资料到底存在 SQLite 还是档案里。而因为 sandbox 挡住了直接读档，Content Provider 就是<b>唯一合法的跨 app 资料分享管道</b>。（注：slide 49 的 OCR 文字被打乱成像有三个 provider，实际图上只有一个。）</figcaption>
+</figure>
+
+<h3>7.4 Service</h3>
+<ul>
+<li><strong>没有 UI，在背景执行</strong></li>
+<li>执行<strong>长时间的操作</strong>，或为<strong>远端 process</strong> 工作</li>
+<li>例子：背景播音乐、透过网络抓资料</li>
+<li><strong>由另一个 component 启动</strong>（例如 Activity 启动它）</li>
+</ul>
+
+<div class="box warn">
+<span class="lab">⚠️ 最常见的误解：Service ≠ 另一条 thread</span>
+<p>Service 预设仍然跑在 <strong>main thread（UI thread）</strong> 上。如果你在 Service 里做耗时工作而不另开 thread，一样会卡住 UI（ANR）。Slide 说「long-running operations」很容易让人误会。</p>
+<p>补充（不在 slide）：从 Android 8.0 起背景 service 有严格限制，长时间工作要用 <strong>Foreground Service</strong>（必须显示通知）或 <strong>WorkManager</strong>。</p>
+</div>
+
+<h3>7.5 四大 component 对照表</h3>
+<div class="tw">
+<table>
+<tr><th></th><th>Activity</th><th>Broadcast Receiver</th><th>Content Provider</th><th>Service</th></tr>
+<tr><td><strong>有 UI 吗</strong></td><td>✅ 有，就是画面</td><td>❌ 无（可发 notification）</td><td>❌ 无</td><td>❌ 无</td></tr>
+<tr><td><strong>用途</strong></td><td>与用户互动</td><td>回应系统 / app 事件</td><td>分享资料</td><td>背景长时间工作</td></tr>
+<tr><td><strong>怎么启动</strong></td><td>Intent</td><td>Intent（广播）</td><td><strong>ContentResolver</strong></td><td>Intent</td></tr>
+<tr><td><strong>典型例子</strong></td><td>登入画面</td><td>开机、电量低、新讯息</td><td>联络人、相册、字典</td><td>播音乐、同步资料</td></tr>
+<tr><td><strong>是否长驻</strong></td><td>用户离开就 stop</td><td>处理完立刻结束</td><td>被查询时才动作</td><td>可以持续跑</td></tr>
+</table>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Slide 51 的答案</span>
+<div class="tw">
+<table>
+<tr><th>需求</th><th>Component</th><th>理由</th></tr>
+<tr><td>a. Login screen</td><td><strong>Activity</strong></td><td>需要 UI 给用户输入帐号密码</td></tr>
+<tr><td>b. Sync data from an app to a server</td><td><strong>Service</strong></td><td>无 UI、长时间、在背景跑</td></tr>
+<tr><td>c. Manage a shared set of app data on local storage</td><td><strong>Content Provider</strong></td><td>「shared」＋「local storage」＝ 跨 app 分享资料的标准答案</td></tr>
+<tr><td>d. Schedule an alarm to post a notification</td><td><strong>Broadcast Receiver</strong></td><td>时间到时由系统广播触发，receiver 收到后发出 status bar notification</td></tr>
+</table>
+</div>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>An Android app is built from four types of component. An <b>activity</b> is a single screen with a user interface. A <b>service</b> runs long-running work in the background and has no user interface. A <b>broadcast receiver</b> responds to system-wide or app events such as a reboot or low battery; it has no UI but can post a status-bar notification. A <b>content provider</b> manages access to a central repository of data and lets other apps query or modify it with permission. Activities, services and broadcast receivers are activated by an intent, while a content provider is accessed through a ContentResolver.</p>
+</div>
+
+<h2 id="c1-s8">8. Component 之间怎么互相启动，与 Intent</h2>
+
+<p>Slide 52 提出的问题：<em>既然 Android 把每个 app 关在独立 process、用档案权限互相隔离，那一个 app 要怎么启动另一个 app 的 component？</em></p>
+<p>答案是：</p>
+<ul>
+<li><strong>一个 app 可以启动另一个 app 的 component</strong></li>
+<li><strong>Android app 没有单一进入点，没有 <code>main()</code> function</strong></li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="跨 app 启动 component 由 Android OS 居中">
+<defs>
+<marker id="c1-ar4" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="12" width="168" height="90" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="24" y="34" font-weight="700" font-size="13">WhatsApp</text>
+<rect x="24" y="42" width="136" height="22" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="36" y="58" font-size="11.5">Chat</text>
+<rect x="24" y="70" width="136" height="22" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="36" y="86" font-size="11.5">Profile</text>
+
+<rect x="8" y="150" width="168" height="90" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="24" y="172" font-weight="700" font-size="13">Browser</text>
+<rect x="24" y="180" width="136" height="22" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="36" y="196" font-size="11.5">View Web</text>
+<rect x="24" y="208" width="136" height="22" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="36" y="224" font-size="11.5">Download</text>
+
+<rect x="270" y="98" width="160" height="56" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="2"/>
+<text x="304" y="122" font-weight="700" font-size="13">Android OS</text>
+<text x="314" y="140" font-size="10.5" fill="var(--d-muted)">（中间人）</text>
+
+<rect x="524" y="60" width="168" height="130" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="540" y="84" font-weight="700" font-size="13">Gallery</text>
+<rect x="540" y="94" width="136" height="24" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="552" y="111" font-size="11.5">Pick a photo</text>
+<rect x="540" y="130" width="136" height="24" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="552" y="147" font-size="11.5">View a photo</text>
+
+<path d="M176,81 L222,81 L222,116 L268,116" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar4)"/>
+<text x="186" y="74" font-size="11" fill="var(--d-muted)">Intent</text>
+<path d="M430,116 L478,116 L478,106 L522,106" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c1-ar4)"/>
+
+<path d="M176,219 L222,219 L222,136 L268,136" fill="none" stroke="var(--d-stroke)" stroke-width="1.6" marker-end="url(#c1-ar4)"/>
+<text x="186" y="212" font-size="11" fill="var(--d-muted)">Intent</text>
+<path d="M430,136 L478,136 L478,142 L522,142" fill="none" stroke="var(--d-stroke)" stroke-width="1.6" marker-end="url(#c1-ar4)"/>
+</g>
+</svg>
+<figcaption><b>看这里：</b>两条线都<b>必经中间那个框</b>，没有任何一条从左边直接连到右边。请求不是 app 送给 app，而是<b>送给 Android OS，由 OS 去找谁能做</b>。这样就不违反 sandbox——两个 app 从头到尾没有直接接触。</figcaption>
+</figure>
+
+<div class="box warn">
+<span class="lab">💡 「没有 main()」为什么重要</span>
+<p>传统程式（C、Java 桌面程式）从 <code>main()</code> 开始跑到结束，<strong>程式自己控制流程</strong>。Android 相反：系统随时可以从<strong>任何一个 component</strong> 进入你的 app——用户点图标进 MainActivity、点通知进另一个 Activity、系统广播叫醒 Broadcast Receiver。</p>
+<p><strong>流程由系统控制，你的 code 只是回应 callback。</strong>这叫 inversion of control，也是为什么 Chapter 3 要学 lifecycle。</p>
+</div>
+
+<h3>8.1 Intent</h3>
+<ul>
+<li>用 Intent 来启动 <strong>Activity、Service、Broadcast Receiver</strong>（三种，Content Provider 除外）</li>
+<li><strong>Intent 定义一则讯息（message），用来启动某个特定 component 或某类 component</strong></li>
+<li>细节在 <strong>Chapter 3</strong></li>
+</ul>
+
+<p>「特定 component」vs「某类 component」这句话其实就藏了 Chapter 3 的 explicit / implicit：</p>
+<div class="tw">
+<table>
+<tr><th></th><th>Explicit Intent</th><th>Implicit Intent</th></tr>
+<tr><td>指定方式</td><td>直接指名类别（<code>MainActivity::class.java</code>）</td><td>只说要做什么动作（<code>ACTION_VIEW</code>、<code>ACTION_SEND</code>）</td></tr>
+<tr><td>用在</td><td><strong>同一个 app 内</strong>的画面跳转</td><td>交给<strong>别的 app</strong> 处理（开地图、寄信、拍照）</td></tr>
+<tr><td>结果</td><td>一定到那个 component</td><td>系统列出所有能做的 app 让用户选</td></tr>
+</table>
+</div>
+<p><strong>判断口诀：目标在自己 app 里 → explicit；要借别人的 app → implicit。</strong>（考卷 Q2(c) 四小题各 3 分考这个。）</p>
+
+<div class="box ok">
+<span class="lab">✅ Slide 60 的答案</span>
+<div class="qa">
+<p class="q">1. Intent class 的用途是什么？</p>
+<p class="a">Intent 是一个<b>讯息物件（messaging object）</b>，用来在 component 之间传递「要做什么」的请求。它让一个 component 可以启动 Activity、启动 Service 或发出 Broadcast，<b>并且可以跨 app</b>（由 Android 系统居中媒合），同时还能携带资料（extras）给目标 component。</p>
+</div>
+<div class="qa">
+<p class="q">2. 三个常见用途：</p>
+<p class="a"><b>启动 Activity</b>（<code>startActivity(intent)</code>）— 开一个新画面；<b>启动 Service</b>（<code>startService(intent)</code>）— 叫背景工作开始；<b>传送 Broadcast</b>（<code>sendBroadcast(intent)</code>）— 通知所有订阅者某事件发生。</p>
+</div>
+<div class="qa">
+<p class="q">3. Manifest file 为什么对每个 Android app 都重要？</p>
+<p class="a">因为它是 Android 在启动任何 component <b>之前读的第一个档案</b>，系统靠它知道这个 app 有哪些 component 存在。<b>没有在 manifest 宣告的 component，对 Android 来说等于不存在，永远不会被执行。</b>它还声明 permission、最低 API level、需要的硬体/软体功能与函式库，系统与 Play Store 都靠它决定这个 app 能不能装、能不能用某些功能。</p>
+</div>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>An intent is a messaging object used to request an action from another component. It can start an activity, start a service, or deliver a broadcast, and it can carry data as extras. Because an app has no single entry point and no main() function, the Android system receives the intent and locates a matching component — which may belong to another app — so the two apps never contact each other directly and the sandbox is preserved.</p>
+</div>
+
+<h2 id="c1-s9">9. Manifest File 与 App Resources</h2>
+
+<h3>9.1 AndroidManifest.xml</h3>
+<ul>
+<li>是 Android <strong>启动任何 component 前读的第一个档案</strong></li>
+<li>让系统知道这个 app <strong>有哪些 component</strong></li>
+<li><strong>没在 manifest 宣告的 component 不被 Android 看见，永远不能执行</strong></li>
+</ul>
+
+<div class="tw">
+<table>
+<tr><th>内容项目</th><th>作用</th></tr>
+<tr><td><strong>Permission</strong></td><td>要用哪些敏感资源</td></tr>
+<tr><td><strong>Minimum API level</strong></td><td>最低支援的 Android 版本</td></tr>
+<tr><td><strong>Hardware / software features</strong></td><td>例如需要相机、GPS；Play Store 据此过滤不相容的装置</td></tr>
+<tr><td><strong>App components</strong></td><td>四大 component 的声明</td></tr>
+<tr><td><strong>Linked libraries</strong></td><td>用到的外部函式库</td></tr>
+</table>
+</div>
+
+<p><strong>Permission 的定义（Slide 58）</strong>：一种<strong>限制</strong>，用来限制对装置上 code 与 data 的存取，目的是保护重要的资料与程式不被滥用或破坏。</p>
+
+<div class="box warn">
+<span class="lab">⚠️ Slide 56 的绝对句有一个例外</span>
+<p>「Components not declared in the manifest can never run」对 <strong>Activity、Service、Content Provider</strong> 成立，但 <strong>Broadcast Receiver 可以在程式码中动态注册</strong>（<code>registerReceiver()</code>），不需要写进 manifest 照样能收广播——这叫 <strong>context-registered receiver</strong>，app 关掉就失效。</p>
+<p><strong>考试策略：</strong>题目直接问就照 slide 答（这是它要的答案）。但知道这个例外能让你在「解释 receiver 的两种注册方式」这类题目上拿分。</p>
+</div>
+
+<h3>9.2 App Resources</h3>
+<p>内容：<strong>Animation / Image、Menu、Style、Colour、String、Layout (UI)</strong> 等。</p>
+<p><strong>为什么要分开放？</strong>因为 Android 会<strong>按装置自动挑选</strong>对应的 resource：<code>values-ms/</code> 放马来文字串、<code>values-zh/</code> 放中文、<code>drawable-hdpi/</code> 放高解析图、<code>values-night/</code> 放深色模式颜色。<strong>Code 一行都不用改</strong>，系统在执行时看装置设定自己选。</p>
+<p>MyGOV 的 multilingual support 就是靠这个做的——这点 slide 完全没讲，但拿来答 case study 很好用。（详细做法在 Chapter 2.3。）</p>
+
+<hr>
+
+<h2 id="c1-mislead">⚠️ Slide 误导或省略的地方（汇整）</h2>
+<div class="tw">
+<table>
+<tr><th>Slide</th><th>Slide 怎么说</th><th>更准确的理解</th><th>考试怎么办</th></tr>
+<tr><td>6</td><td>Hybrid 的 performance「depends on speed of network」</td><td>Hybrid 的网页资源打包在 APK 内；慢是因为 WebView 多一层渲染</td><td>抄 slide 的题照答；问「为什么慢」答 WebView</td></tr>
+<tr><td>9 / 11</td><td>把 React Native、Flutter 和 Ionic 一起叫 hybrid</td><td>RN / Flutter 编译成原生控件，效能接近 native；只有 Ionic / PhoneGap 是 WebView 型</td><td>照 slide 分类，心里分清</td></tr>
+<tr><td>33</td><td>Java、Kotlin、C++ 并列</td><td>Kotlin 是官方首选；C++ 只能透过 NDK 写部分模组</td><td>三个都写没错</td></tr>
+<tr><td>35</td><td>「its own virtual machine」</td><td>这个 VM 是 <strong>ART</strong>（Android 5.0 起取代 Dalvik），process 由 Zygote fork</td><td>写 VM 即可，能说 ART 加分</td></tr>
+<tr><td>38</td><td>共用 Linux UID 来分享资料</td><td><code>sharedUserId</code> 自 API 29 起 deprecated，现建议用 Content Provider</td><td>问「how」照答；问「recommend」答 Content Provider</td></tr>
+<tr><td>40</td><td>所有权限 install（≤v5）或 runtime（≥v6）</td><td>v6 以上 normal permission 仍是安装时自动给，只有 dangerous permission 才 runtime</td><td>照 slide 答，能补充更好</td></tr>
+<tr><td>50</td><td>Service「performs long-running operations」</td><td>Service 预设仍跑在 main thread，要自己开 thread；Android 8 起背景 service 受限</td><td>别写成「Service 是另一条 thread」</td></tr>
+<tr><td>55</td><td>「Use Intent to activate Activities, Services, Broadcast Receivers」</td><td>有意省略 Content Provider——它用 ContentResolver + URI</td><td>这正是考点，记熟</td></tr>
+<tr><td>56</td><td>未宣告的 component「can never run」</td><td>Broadcast Receiver 可动态 <code>registerReceiver()</code>，不必写进 manifest</td><td>照 slide 答，例外放心里</td></tr>
+</table>
+</div>
+
+<h2 id="c1-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>Native app</td><td>原生应用</td><td>用平台原生语言编译，效能最好、硬体全开，但每平台各写一套</td></tr>
+<tr><td>Hybrid app</td><td>混合式应用</td><td>native 外壳包 WebView，一套 code 上架多平台</td></tr>
+<tr><td>Mobile web app</td><td>行动网页应用</td><td>浏览器打开的网站，不用安装，硬体权限极有限</td></tr>
+<tr><td>Codebase</td><td>程式码库</td><td>一套原始码；native 需要多套，hybrid / web 只要一套</td></tr>
+<tr><td>Kernel</td><td>核心</td><td>OS 最底层，管 CPU、记忆体与硬体</td></tr>
+<tr><td>Microkernel</td><td>微核心</td><td>kernel 只留最核心功能，其余推到外面；稳定、好移植</td></tr>
+<tr><td>APK</td><td>安装包</td><td>Android package＝compiled code ＋ resources ＋ data</td></tr>
+<tr><td>Security sandbox</td><td>安全沙盒</td><td>每个 app 独立 UID、process、VM，互相读不到资料</td></tr>
+<tr><td>UID (Linux User ID)</td><td>使用者识别码</td><td>系统给每个 app 的唯一编号，档案权限据此判定</td></tr>
+<tr><td>Principle of least privilege</td><td>最小权限原则</td><td>预设只给完成工作所需的最低权限</td></tr>
+<tr><td>Permission</td><td>权限</td><td>限制对 code 与 data 的存取，保护资料不被滥用</td></tr>
+<tr><td>Runtime permission</td><td>执行时权限</td><td>Android 6 起，用到才问，可单独拒绝与撤回</td></tr>
+<tr><td>Activity</td><td>活动／画面</td><td>一个有 UI 的萤幕，其中一个是 main activity</td></tr>
+<tr><td>Broadcast Receiver</td><td>广播接收器</td><td>无 UI，先 register 才能收系统或 app 事件</td></tr>
+<tr><td>Content Provider</td><td>内容提供者</td><td>管理中央资料仓库，跨 app 分享资料的唯一合法管道</td></tr>
+<tr><td>Service</td><td>服务</td><td>无 UI，在背景做长时间工作，由其他 component 启动</td></tr>
+<tr><td>Intent</td><td>意图</td><td>启动 component 的讯息物件，可跨 app、可带 extras</td></tr>
+<tr><td>Manifest file</td><td>资讯清单</td><td>启动 component 前读的第一个档案；未宣告＝不存在</td></tr>
+<tr><td>App resources</td><td>应用资源</td><td>图片、字串、layout、颜色等，系统按装置自动挑选</td></tr>
+</table>
+</div>
+
+<h2 id="c1-cheat">Cheat Sheet</h2>
+
+<p><strong>App 三型</strong> — Native：贵／快／app store／硬体全开／多套 code　│　Hybrid：便宜／中等／app store／硬体有限／一套 code　│　Web：便宜／慢／不用上架／硬体极有限／一套 code</p>
+
+<p><strong>OS ＋ Kernel</strong> — Android＝Linux(开)　iOS＝Unix(闭)　Tizen＝Linux(开)　KaiOS＝Linux(开)　Harmony＝Microkernel(开)　Fuchsia＝Microkernel(开, module architecture, Nest Hub)　│　市占：Android ≈70%／iOS ≈28%</p>
+
+<p><strong>四大挑战</strong> — Processing power · Memory &amp; storage · Battery · Network</p>
+
+<p><strong>APK</strong> ＝ Compiled Code ＋ Resources ＋ Data</p>
+
+<p><strong>Sandbox 五句</strong> — 不同 user → 独立 UID → 档案权限 → 独立 process → 独立 VM</p>
+
+<p><strong>共用资料</strong> — same Linux UID ＋ same certificate → 同 process 同 VM → 省资源</p>
+
+<p><strong>Permission</strong> — v5 以下 install time；v6 以上 runtime</p>
+
+<p><strong>ABCS</strong> — Activity＝画面有 UI │ Broadcast Receiver＝无 UI 要先 register 可发 notification │ Content Provider＝管中央资料库、别的 app 可 query／modify │ Service＝无 UI 背景长时间工作</p>
+
+<p><strong>Intent</strong> — 启动 Activity／Service／Broadcast Receiver（<strong>Content Provider 除外</strong>）　│　<strong>没有 main()</strong>，没有单一进入点</p>
+
+<p><strong>Manifest</strong> — 启动前读的第一个档案；未宣告＝不存在。内容：Permission、Min API level、Hardware/software features、App components、Linked libraries</p>
+
+<p><strong>Resources</strong> — Animation／Image、Menu、Style、Colour、String、Layout</p>
+
+<hr>
+
+<h2 id="c1-practice">Practice（英文出题，答案含解释）</h2>
+<p class="lede">题目与答案都用英文，因为考卷是英文，你需要练的是「用英文写得出来」。每题答案下面有一行中文说明为什么。情境沿用你考卷的 MyGOV Malaysia。</p>
+
+<h3>A. Multiple choice (5)</h3>
+<ol>
+<li>Which of the following is <b>not</b> one of the four Android app components?<br>(A) Activity　(B) Intent　(C) Content Provider　(D) Broadcast Receiver</li>
+<li>Which statement about the Android security sandbox is <b>false</b>?<br>(A) Each app is assigned a unique Linux UID　(B) Each app runs in its own process　(C) All apps share a single virtual machine to save memory　(D) The system sets file permissions for all of an app's files</li>
+<li>MyGOV Malaysia needs a screen on which users browse more than 100 services by category and tap into a form. This screen should be implemented as a:<br>(A) Service　(B) Content Provider　(C) Activity　(D) Broadcast Receiver</li>
+<li>Which component is <b>not</b> started using an intent?<br>(A) Activity　(B) Service　(C) Broadcast Receiver　(D) Content Provider</li>
+<li>What do Harmony OS and Fuchsia have in common?<br>(A) Both are developed by Google　(B) Both use a microkernel　(C) Both are closed source　(D) Both are based on the Linux kernel</li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw">
+<table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>B</strong></td><td>An intent is a <b>messaging object</b> used to activate components; it is not a component itself. The four are Activity, Broadcast receiver, Content provider, Service (ABCS).<br><span style="color:var(--muted);font-size:.9em">中文：Intent 是用来「启动」component 的讯息，本身不是 component。</span></td></tr>
+<tr><td>2</td><td><strong>C</strong></td><td>The opposite is true — <b>each process has its own VM</b>. Only when two apps share the same UID and are signed with the same certificate do they share a process and a VM.<br><span style="color:var(--muted);font-size:.9em">中文：刚好相反，每个 process 有自己的 VM。</span></td></tr>
+<tr><td>3</td><td><strong>C</strong></td><td>Any screen with a user interface is an activity.<br><span style="color:var(--muted);font-size:.9em">中文：有 UI 的画面一律是 Activity。</span></td></tr>
+<tr><td>4</td><td><strong>D</strong></td><td>A content provider is accessed through a <b>ContentResolver</b> with a <code>content://</code> URI, not through an intent.<br><span style="color:var(--muted);font-size:.9em">中文：这是 Slide 55 刻意留下的考点。</span></td></tr>
+<tr><td>5</td><td><strong>B</strong></td><td>Both use a microkernel and both are open source; but Harmony is Huawei's and Fuchsia is Google's, so (A) is wrong, and (C) and (D) are both wrong.<br><span style="color:var(--muted);font-size:.9em">中文：共同点只有 microkernel ＋ open source。</span></td></tr>
+</table>
+</div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Explain the <b>principle of least privilege</b> in Android and describe the mechanisms the system uses to enforce it. <em>(5 marks)</em></li>
+<li>MyGOV Malaysia wants to notify a user as soon as their driving-licence renewal is approved. Using <b>two</b> of the four app components, explain how this feature would work. <em>(6 marks)</em></li>
+<li>Why does an Android app have no <code>main()</code> function, and how does this affect the way a developer writes code? <em>(5 marks)</em></li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> The principle of least privilege means that <b>by default each app is granted access only to the components it requires to do its work, and no more; an app cannot access any part of the system for which it has not been given permission.</b> The system enforces this in two layers. First, the <b>application sandbox</b>: each app receives a unique Linux user ID, runs in its own process with its own virtual machine, and its files are protected by permissions tied to that UID, so apps are isolated from one another by default. Second, the <b>permission system</b>: access to sensitive resources such as the camera, location, contacts or storage must be declared in the manifest and approved by the user — at runtime from Android 6.0 onwards — and the user can revoke it at any time.</p>
+<p style="color:var(--muted);font-size:.92em">中文：两层结构是给分重点——沙盒是<b>手段</b>，permission 是<b>用户可控的闸门</b>。只写其中一层大概只拿一半。</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> <b>Service</b> — MyGOV runs a background service that periodically synchronises the application status with the government server. A service is used because the work has no user interface, is long-running network work, and must continue even when the user is not looking at the app. <b>Broadcast receiver</b> — when the service detects that the status has changed to "approved", it sends a broadcast. The registered broadcast receiver picks it up and, although it has no UI of its own, posts a <b>status-bar notification</b> to inform the user. When the user taps the notification, an <b>intent</b> starts the activity that shows the application details.</p>
+<p style="color:var(--muted);font-size:.92em">中文：6 分通常是两个 component 各 3 分（选谁 ＋ 为什么 ＋ 做什么）。最后那句 Activity 是额外分，不是必要的。</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> An Android app has no <code>main()</code> because it has <b>no single entry point</b>: the system can enter the app through any of its components — the user taps the icon and opens the main activity, taps a notification and opens a different activity, or a system broadcast wakes a broadcast receiver, or another app starts one of its activities through an intent. The effect on the developer is that <b>control of the flow belongs to the system, not to the code</b>. Instead of writing a program that runs from start to finish, the developer implements a set of <b>callbacks</b> (such as <code>onCreate()</code> or <code>onReceive()</code>) that the system calls at the appropriate moment. Every component must therefore be able to start and work <b>independently</b>, without assuming that some other screen has already run.</p>
+<p style="color:var(--muted);font-size:.92em">中文：最后那句「每个 component 必须能独立启动」是最容易被漏掉、也最容易加分的一句。</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>For each of the following MyGOV requirements, identify the most suitable app component and justify your choice:<br>(a) displaying the MyDigital ID login screen　(b) uploading a photo of a document to the government server in the background　(c) automatically resuming background status-sync after the phone reboots　(d) letting other authorised government apps read the user's basic profile stored by MyGOV</li>
+<li>Many rural Malaysian users have phones with 2 GB RAM / 8 GB ROM, a quad-core processor, a 2150 mAh battery and only 3G coverage. Propose one concrete design measure for MyGOV for <b>each</b> of the four key mobile challenges.</li>
+<li>Decide whether each of the following should be built as a native, hybrid or mobile web app, and give one reason each:<br>(a) an official election-information site used for three months　(b) MyGOV Malaysia itself　(c) a banking app that uses the camera for face recognition</li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> (a) <b>Activity</b> — a user interface is required for the user to enter and confirm their identity; one screen is one activity. (b) <b>Service</b> — no UI, a time-consuming network upload that must continue after the user navigates away. (c) <b>Broadcast receiver</b> — boot completion is a system broadcast; the app registers for it beforehand and is woken by the system to restart the sync. (d) <b>Content provider</b> — the only legitimate channel for sharing data across the sandbox boundary; other apps query a <code>content://</code> URI with the appropriate permission while the underlying storage stays hidden.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> <b>Processing power</b> — simplify the layout hierarchy and animations, and move heavy work such as document-image recognition to the server. <b>Memory and storage</b> — ship an Android App Bundle so each device downloads only the resources it needs, compress images, remove unused libraries, and load the 100+ service list page by page instead of all at once. <b>Battery</b> — batch background synchronisation with WorkManager (for example every few hours, or when charging and on Wi-Fi) instead of continuous polling, and keep GPS off when it is not needed. <b>Network</b> — support an offline mode where the service list and application records are cached locally and synchronised when a connection returns; use lightweight JSON and low-resolution images; retry failed requests automatically.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> (a) <b>Mobile web</b> — it is needed for only three months and shows information only, so there is no need for device features, app-store review or installation, and updates take effect immediately. (b) <b>Native</b> — it handles digital-ID authentication, ePayment and push notifications, all of which need OS-level secure storage and biometric APIs, and it serves the whole population so performance and reliability matter. (c) <b>Native</b> — face recognition needs a low-latency camera stream and the device's secure element, which a hybrid WebView cannot access reliably.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>Android keeps every app in its own sandbox so that apps cannot see each other's data. Why, then, can WhatsApp open the gallery app to let you pick a photo? Does this contradict the sandbox? <em>(6 marks)</em></li>
+<li>The slides say two apps can read and write each other's files if they share the same Linux UID. If this is so convenient, why did Google later discourage it? <em>(6 marks)</em></li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> There is no contradiction, because <b>the two apps never contact each other directly</b>. WhatsApp does not read the gallery app's files; it sends an <b>intent</b> to the <b>Android system</b> saying that it needs a component that can "pick a photo". The system locates and starts the matching activity in the gallery app, the user personally selects a photo inside the gallery's own screen, and the system then returns access to <b>only that one selected item</b> to WhatsApp. The OS acts as the intermediary and the user acts as the authoriser. WhatsApp never receives permission to read the whole gallery folder — it receives only what the user explicitly chose, which is the <b>principle of least privilege</b> in practice rather than an exception to it.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> There are three problems. First, it <b>breaks the sandbox isolation</b>: sharing a UID removes the security boundary between the two apps, so if one of them is compromised the attacker immediately gains all the data of the other, defeating the purpose of the sandbox. Second, it is <b>irreversible</b>: once <code>sharedUserId</code> has been set in a published version it cannot be removed in a later update without the system treating the app as a different app and losing the user's data, so it is a permanent commitment. Third, there is a <b>safer alternative</b>: a <b>content provider with custom permissions</b> gives fine-grained, per-item control — exposing only the specific data that needs to be shared rather than the whole file space — and access can be revoked. For these reasons <code>sharedUserId</code> has been <b>deprecated since API 29</b>.</p>
+</div>
+
+<hr>
+
+<h2 id="c1-index">Slide 索引</h2>
+<p>如果你想回去对照原本的讲义，这张表告诉你每一节对应哪几页。</p>
+<div class="tw">
+<table>
+<tr><th>本笔记章节</th><th>Slide 页码</th></tr>
+<tr><td>0. 总览（Objectives）</td><td>1–4</td></tr>
+<tr><td>1. App 三种类型</td><td>5–7</td></tr>
+<tr><td>2. 语言与工具</td><td>8–12</td></tr>
+<tr><td>3. Mobile OS</td><td>13–21</td></tr>
+<tr><td>4. 四大挑战</td><td>22–25</td></tr>
+<tr><td>5. Beyond Mobile App</td><td>26–31</td></tr>
+<tr><td>6.1 APK 组成</td><td>32–34</td></tr>
+<tr><td>6.2 Security Sandbox</td><td>35–36</td></tr>
+<tr><td>6.3 Least Privilege</td><td>37</td></tr>
+<tr><td>6.4 共用 UID</td><td>38–39</td></tr>
+<tr><td>6.5 Permission ＋ Slide 42 答案</td><td>40–42</td></tr>
+<tr><td>7. 四大 Component ＋ Slide 51 答案</td><td>43–51</td></tr>
+<tr><td>8. 跨 app 启动与 Intent</td><td>52–55</td></tr>
+<tr><td>9. Manifest ＋ Resources ＋ Slide 60 答案</td><td>56–60</td></tr>
+<tr><td>Conclusion</td><td>61</td></tr>
+</table>
+</div>
+
+<h2 id="c1-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>在哪一章展开</th></tr>
+<tr><td>Activity 就是一个画面、要画 UI</td><td><strong>Ch 2.1–2.3</strong> — Layouts、Fragment、Navigation、Menu、Notification</td></tr>
+<tr><td>记忆体不足时系统会杀掉 process</td><td><strong>Ch 3</strong> — Activity lifecycle、状态保存</td></tr>
+<tr><td>Intent「启动特定或某类 component」</td><td><strong>Ch 3</strong> — Explicit vs Implicit Intent（考卷 Q2c）</td></tr>
+<tr><td>Content Provider 底层可以是 SQLite / file</td><td><strong>Ch 4.1</strong> — SharedPreferences、File、SQLite/Room</td></tr>
+<tr><td>Service「透过网络抓资料」＋ Network 挑战</td><td><strong>Ch 4.2</strong> — Network、背景执行绪、Server options</td></tr>
+<tr><td>Permission（location、camera）</td><td><strong>Ch 5</strong>（Location-based Services）、<strong>Ch 6</strong>（Camera、Sensors）</td></tr>
+<tr><td>Manifest 的 min API level、hardware features、签章</td><td><strong>Ch 7</strong> — Packaging &amp; Publication</td></tr>
+<tr><td>Resource 分开放 → 自动切换语言与版面</td><td><strong>Ch 2.3</strong> — Design for Everyone（考卷 Q2a）</td></tr>
+</table>
+</div>
+
+<footer>
+<p>这一章最可能的考点，按机率排：① 四大 component 的定义与情境配对　② 两个 Mobile OS ＋ justify　③ Native / Hybrid / Web 的比较与选择　④ Sandbox 与 permission 怎么保护使用者　⑤ Manifest 的重要性与内容　⑥ 四大挑战与新兴市场对策。</p>
+</footer>
+</section>
+
+<section class="chapter" id="chapter-2">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 2 — User Interface (2.1 Layouts · 2.2 Navigation · 2.3 Menus &amp; Accessibility)</h1>
+  <p class="lede">三份 slide 讲师编在同一章教，笔记也合成一份。这章在考卷上分数最集中——Q1(b) 单题 15 分考「优化 layout 效能」，Q2(a) 考支援不同装置，Q2(b) 考通知机制，三题共 25 分。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c2-s1">Layout 基础</a></li>
+<li><a href="#c2-s2">优化 Layout 效能</a> <span class="tag">考卷 Q1b · 15分</span></li>
+<li><a href="#c2-s3">UI Components</a></li>
+<li><a href="#c2-s4">Navigation Principles</a></li>
+<li><a href="#c2-s5">Fragment</a></li>
+<li><a href="#c2-s6">Navigation Component</a></li>
+<li><a href="#c2-s7">Dialog vs Notification vs Snackbar</a></li>
+<li><a href="#c2-s8">Navigation Drawer vs Tabs</a></li>
+<li><a href="#c2-s9">Menu (Toolbar)</a></li>
+<li><a href="#c2-s10">Toast / Snackbar / Notification</a> <span class="tag">考卷 Q2b</span></li>
+<li><a href="#c2-s11">Design for Everyone</a> <span class="tag">考卷 Q2a</span></li>
+<li><a href="#c2-s12">Accessibility</a></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这章在考卷上的份量最重</span>
+<p>Q1(b) 单题 15 分考「优化 layout 效能的三个方法」；Q2(a) 考支援不同种族/装置的方法；Q2(b) 考怎么通知用户有更新。三题加起来 25 分，是四题里分数最集中的一题。</p>
+</div>
+
+<h4>前置知识</h4>
+<p>假设你已经知道 <strong>Composable function</strong> 是什么（一个用 <code>@Composable</code> 标记、会画出部分 UI 的 Kotlin function）。不熟的话，先把它当成「一小块画面的说明书」理解即可，不影响读这章。</p>
+
+<h2 id="c2-s1">1. Layout 基础（2.1）</h2>
+
+<p>Compose 的 UI 用三个积木<strong>声明式（declaratively）</strong>嵌出来：</p>
+
+<div class="tw">
+<table>
+<tr><th>积木</th><th>作用</th></tr>
+<tr><td><code>Row</code></td><td>把子元件排成<strong>一条横排</strong></td></tr>
+<tr><td><code>Column</code></td><td>把子元件排成<strong>一条直排</strong></td></tr>
+<tr><td><code>Box</code></td><td>让子元件<strong>叠在一起</strong>（例如图片上叠文字）</td></tr>
+<tr><td><code>Modifier</code></td><td>控制单个元件的 padding、size、alignment 等外观行为，不是积木本身</td></tr>
+<tr><td><code>Divider</code></td><td>画一条分隔线，管理留白</td></tr>
+</table>
+</div>
+
+<p><strong>ConstraintLayout</strong>：用于大型、复杂的版面，但保持<strong>扁平的 view hierarchy</strong>（不用一层层的 Row 包 Column 包 Row）。相容 API 9+。规则：<strong>每个 view 至少要有一个水平约束和一个垂直约束</strong>，否则位置不确定。
+
+<div class="tw">
+<table>
+<tr><th>ViewGroup</th><th>用途</th></tr>
+<tr><td><code>LazyColumn</code> / <code>LazyRow</code></td><td>捲动的单栏清单，<strong>不需要像传统 RecyclerView 那样写 adapter</strong></td></tr>
+<tr><td><code>LazyGrid</code></td><td>捲动的网格</td></tr>
+</table>
+</div>
+
+<pre><code>val items = listOf("Apple", "Banana", "Cherry")
+LazyColumn {
+    items(items) { item -> Text(text = item) }
+}</code></pre>
+
+<div class="box ok">
+<span class="lab">✅ Slide 9 的图题（没给答案）</span>
+<p>Slide 给两张手机截图：<strong>A = YouTube 首页</strong>（上方三个分类 tab，下方是单栏影片清单），<strong>B = Google Play</strong>（顶部搜寻栏，下方是横向捲动的 app 网格，分好几个分类区块）。</p>
+<div class="tw">
+<table>
+<tr><th>App</th><th>合适的 Layout</th><th>理由</th></tr>
+<tr><td>A（YouTube 风格）</td><td><code>Column</code> 外层 + <code>LazyColumn</code>（清单）+ 顶部 Tabs</td><td>单栏、可捲动、清单项目数量不定</td></tr>
+<tr><td>B（Play Store 风格）</td><td><code>Column</code> 外层 + 多个 <code>LazyRow</code>（每个分类横向捲动）</td><td>多个横向分类区块叠在一起，各自独立捲动</td></tr>
+</table>
+</div>
+</div>
+
+<h2 id="c2-s2">2. ★★ 优化 Layout 效能 <span class="tag">考卷 Q1b · 15分</span></h2>
+
+<p>Slide 分两段讲：先讲「传统 Android」的三招，再讲「Compose 怎么处理」，但<strong>没有把两边对照起来</strong>——这是答题时最容易漏点的地方。</p>
+
+<div class="tw">
+<table>
+<tr><th>#</th><th>传统 Android 做法</th><th>Jetpack Compose 的做法</th></tr>
+<tr><td><strong>1. Optimize layout hierarchy</strong></td><td>减少巢状 <code>ViewGroup</code>（用 <code>ConstraintLayout</code> 压平层级）</td><td>Compose <strong>没有传统 View hierarchy</strong>，用一个扁平的 Composable tree，<strong>只 recompose 有变动的部分</strong>（smart recomposition）</td></tr>
+<tr><td><strong>2. Re-use layouts</strong></td><td>XML 用 <code>&lt;include&gt;</code> tag 重用一段版面</td><td>不用 <code>&lt;include&gt;</code>，改用<strong>composable function</strong>；最佳实践是把 UI 拆成小而可重用的 composable</td></tr>
+<tr><td><strong>3. Load views on demand</strong></td><td>用 <code>ViewStub</code> 延迟载入不常显示的 view</td><td>LazyColumn / LazyGrid <strong>原生支援</strong>：只组合并绘制<strong>当前看得见</strong>的项目，捲出画面的会被销毁</td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ListView 与 LazyList 载入方式对比">
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">ListView — 全部载入</text>
+<rect x="8" y="26" width="300" height="180" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<rect x="20" y="38" width="276" height="26" rx="4" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="30" y="55" font-size="11">Record 1（可见）</text>
+<rect x="20" y="70" width="276" height="26" rx="4" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="30" y="87" font-size="11">Record 2（可见）</text>
+<rect x="20" y="102" width="276" height="26" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-dasharray="3 2"/>
+<text x="30" y="119" font-size="11" fill="var(--d-muted)">Record 3（不可见，仍占记忆体）</text>
+<rect x="20" y="134" width="276" height="26" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-dasharray="3 2"/>
+<text x="30" y="151" font-size="11" fill="var(--d-muted)">Record 4（不可见，仍占记忆体）</text>
+<rect x="20" y="166" width="276" height="26" rx="4" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-dasharray="3 2"/>
+<text x="30" y="183" font-size="11" fill="var(--d-muted)">Record 5（不可见，仍占记忆体）</text>
+
+<text x="384" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">LazyList — 按需载入</text>
+<rect x="384" y="26" width="300" height="180" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<rect x="396" y="38" width="276" height="26" rx="4" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="406" y="55" font-size="11">Record 1（组合＋绘制）</text>
+<rect x="396" y="70" width="276" height="26" rx="4" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="406" y="87" font-size="11">Record 2（组合＋绘制）</text>
+<rect x="396" y="102" width="276" height="90" rx="4" fill="none" stroke="var(--d-line)" stroke-dasharray="4 4"/>
+<text x="470" y="150" font-size="11" fill="var(--d-muted)">（画面外，尚未组合，</text>
+<text x="470" y="166" font-size="11" fill="var(--d-muted)">捲到才建立，捲走即回收）</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>左边即使看不见的 record 仍然是真实存在的 view 物件，占着记忆体；右边画面外的项目<b>根本还没被组合出来</b>，这才是 LazyColumn 效能好的真正原因，不只是「捲动流畅」这么表面。</figcaption>
+</figure>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>Three methods improve layout performance. First, optimising the layout hierarchy: traditional Android reduces nested ViewGroups using ConstraintLayout, while Compose has no view hierarchy at all — it uses a flat tree of composables and only recomposes the parts that changed. Second, reusing layouts: traditional Android reuses XML with the &lt;include&gt; tag, while Compose reuses composable functions. Third, loading views on demand: traditional Android defers inflation with ViewStub, while Compose's LazyColumn and LazyGrid natively compose and draw only the items currently visible on screen.</p>
+</div>
+
+<h2 id="c2-s3">3. UI Components（2.1）</h2>
+
+<p>六个基本元件：<strong>Button、Text Field、CheckBox、RadioButton、Toggle、Spinner</strong></p>
+
+<div class="tw">
+<table>
+<tr><th>元件</th><th>用途</th><th>备注</th></tr>
+<tr><td><strong>Button</strong></td><td>两类：<code>Button</code>（文字+图示）、<code>ImageButton</code>（只有图示）</td><td>onClick 用 lambda 处理</td></tr>
+<tr><td><strong>TextField</strong></td><td>文字输入</td><td><code>keyboardType</code> 决定键盘样式</td></tr>
+<tr><td><strong>CheckBox</strong></td><td>可选<strong>一个或多个</strong>选项，直式排列</td><td></td></tr>
+<tr><td><strong>RadioButton</strong></td><td><strong>只能选一个</strong>，互斥；适合需要<strong>同时看到所有选项</strong>的情境</td><td></td></tr>
+<tr><td><strong>Spinner</strong></td><td>单选，预设<strong>只显示目前值</strong>，点开才看到其他选项</td><td>比 RadioButton 省空间</td></tr>
+</table>
+</div>
+
+<p><strong>Style vs Theme</strong>：Style 套在<strong>单一 View</strong>；<strong>Theme 套在整个 app 或单一 Activity</strong>。Compose 用 <code>MaterialTheme(colorScheme, typography, shapes) { ... }</code>。</p>
+<p><strong>Dark Theme</strong>：Android <strong>10 (API 29)</strong> 起支援。好处：<strong>省电</strong>、<strong>提升可见度</strong>、<strong>暗处更好用</strong>。继承 <code>DayNight</code> 系列主题。</p>
+
+<h2 id="c2-s4">4. Navigation Principles（2.2）★</h2>
+
+<p>五条原则：</p>
+<ol>
+<li><strong>Fixed start destination</strong>（固定起点）</li>
+<li><strong>Navigation state 是一个 destination 的堆叠</strong></li>
+<li><strong>Up 和 Back 在 app 内部行为相同</strong></li>
+<li><strong>Up 永远不会离开 app</strong>（但 Back 可能会）</li>
+<li><strong>Deep linking 模拟手动导航</strong></li>
+</ol>
+
+<figure>
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Up 按钮与系统 Back 键的作用范围对比">
+<defs>
+<marker id="c2-arU" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">系统 Back 键 — 跨 app</text>
+<rect x="8" y="26" width="330" height="200" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<rect x="24" y="40" width="130" height="28" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="34" y="58" font-size="11">上一个用过的 App</text>
+<rect x="24" y="76" width="130" height="28" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="34" y="94" font-size="11">MyGOV：通知点进的详情页</text>
+<rect x="24" y="112" width="130" height="28" rx="5" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="34" y="130" font-size="11">（桌面）</text>
+<text x="24" y="164" font-size="11" fill="var(--d-muted)">Back 会照实际使用</text>
+<text x="24" y="180" font-size="11" fill="var(--d-muted)">顺序一路退，可能</text>
+<text x="24" y="196" font-size="11" fill="var(--d-muted)"><strong>直接离开这个 app</strong></text>
+
+<text x="384" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">Up 按钮 — 只在 app 内</text>
+<rect x="384" y="26" width="300" height="200" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<rect x="400" y="40" width="130" height="28" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="410" y="58" font-size="11">MyGOV：主画面</text>
+<line x1="465" y1="68" x2="465" y2="88" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c2-arU)"/>
+<rect x="400" y="90" width="130" height="28" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)"/>
+<text x="410" y="108" font-size="11">服务分类页</text>
+<line x1="465" y1="118" x2="465" y2="138" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c2-arU)"/>
+<rect x="400" y="140" width="130" height="28" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="410" y="158" font-size="11">申请详情页（通知点进来）</text>
+<text x="400" y="188" font-size="11" fill="var(--d-muted)">Up 沿着<strong>逻辑层级</strong>往上，</text>
+<text x="400" y="204" font-size="11" fill="var(--d-muted)">必要时<strong>补回</strong>上层画面，</text>
+<text x="400" y="220" font-size="11" fill="var(--d-muted)">永远停在 app 内</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>同样是「从申请详情页往回走」，Back 走的是<b>使用者实际访问过的历史</b>（可能压根没经过服务分类页，是从通知直接跳进来的，Back 就会直接退出 app），Up 走的是<b>开发者定义好的逻辑父层</b>，就算是从通知跳进来的，Up 也会先把该有的上层画面「补」回去再往上，绝对不会把使用者丢出 app。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅ Slide 11 的问题：为什么 Back 和 Up 的行为必须不一样？</span>
+<p>因为两者的<strong>作用范围不同</strong>。Back 是系统级按键，照使用者<strong>实际操作历史</strong>一步步退，可能退出 app、回到上一个用过的 app，甚至到桌面。Up 是 app 内按钮，只沿着开发者定义的<strong>层级结构</strong>往上走，永远不离开这个 app——即使使用者是从通知或深层连结直接跳进来（没有经过上层画面），Up 也会先补上该有的父层画面。如果两者行为相同，从通知跳进深层画面后按返回会直接把使用者丢出 app，打乱他对 app 结构的理解。</p>
+</div>
+
+<h2 id="c2-s5">5. Fragment（2.2）</h2>
+
+<p><strong>Fragment = Layout + Code</strong>，一个<strong>可重用的 UI 模组</strong>，必须寄生在一个 Activity 里，不能独立存在。</p>
+
+<p>一个 Activity 里可以放多个 Fragment，常见用法：<strong>横屏时左右两栏（清单+详情）同时显示；直屏时拆成两页，点一项才跳进详情</strong>。</p>
+
+<figure>
+<svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fragment 在横屏与直屏下的排法差异">
+<defs>
+<marker id="c2-arF" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">横屏（Landscape）— 一个 Activity 装两个 Fragment</text>
+<rect x="8" y="26" width="330" height="140" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<rect x="20" y="38" width="150" height="116" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="32" y="56" font-weight="700" font-size="11.5">Fragment 1</text>
+<text x="32" y="76" font-size="10.5" fill="var(--d-muted)">服务清单</text>
+<rect x="184" y="38" width="140" height="116" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="196" y="56" font-weight="700" font-size="11.5">Fragment 2</text>
+<text x="196" y="76" font-size="10.5" fill="var(--d-muted)">申请详情</text>
+
+<text x="384" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">直屏（Portrait）— 拆成两页</text>
+<rect x="384" y="26" width="140" height="140" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<rect x="396" y="38" width="116" height="116" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="406" y="56" font-weight="700" font-size="11.5">Fragment 1</text>
+<text x="406" y="76" font-size="10.5" fill="var(--d-muted)">服务清单</text>
+
+<line x1="524" y1="96" x2="558" y2="96" stroke="var(--d-accent)" stroke-width="1.8" marker-end="url(#c2-arF)"/>
+<text x="524" y="86" font-size="10" fill="var(--d-muted)">点选</text>
+
+<rect x="562" y="26" width="130" height="140" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<rect x="574" y="38" width="106" height="116" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="582" y="56" font-weight="700" font-size="11.5">Fragment 2</text>
+<text x="582" y="76" font-size="10.5" fill="var(--d-muted)">申请详情</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>横屏和直屏用的是<b>同一组 Fragment</b>，差别只在 Activity 怎么排它们——横屏两个同时放，直屏一次只放一个、靠导航切换。这就是 Fragment 存在的核心价值：<b>UI 逻辑重用，排法各自决定</b>。</figcaption>
+</figure>
+
+<h2 id="c2-s6">6. Navigation Component（2.2）</h2>
+
+<div class="tw">
+<table>
+<tr><th>元件</th><th>是什么</th></tr>
+<tr><td><strong>Navigation Graph</strong></td><td>一个<strong>XML resource</strong>，记录所有导航相关的资讯</td></tr>
+<tr><td><strong>NavHost</strong></td><td>一个<strong>空的容器</strong>，负责显示目前该显示的画面；<strong>会拦截系统 Back 键</strong>（一个 app 只能有一个 default NavHost）</td></tr>
+<tr><td><strong>NavController</strong></td><td>一个<strong>管理 NavHost 内导航</strong>的物件</td></tr>
+</table>
+</div>
+
+<pre><code>NavHost(navController, startDestination = "home") {
+    composable("home")    { HomeScreen(navController) }
+    composable("details") { DetailScreen(navController) }
+}
+navController.navigate("details")
+navController.popBackStack()
+navController.navigate("details/123")</code></pre>
+
+<div class="box ok">
+<span class="lab">✅ Slide 40 的问题</span>
+<div class="qa"><p class="q">1. Fragment 和 Activity 最主要的差别？</p>
+<p class="a">Activity 是<b>独立、完整的画面</b>，有自己的 manifest 宣告和完整生命周期；Fragment 是<b>画面的一部分</b>，必须依附在 Activity 里，不能单独启动或出现在 manifest 里。</p></div>
+<div class="qa"><p class="q">2. 用 Fragment 比只用 Activity 的好处？</p>
+<p class="a">同一模组可以<b>在不同 Activity 间重用</b>；支援<b>多窗格版面</b>（横屏两栏、平板/手机不同排法）；切换 Fragment 比切换整个 Activity<b>更轻量</b>。</p></div>
+</div>
+
+<h2 id="c2-s7">7. Dialog vs Notification vs Snackbar（2.2）★</h2>
+
+<figure>
+<svg viewBox="0 0 700 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dialog、Notification、Snackbar 的干扰程度光谱">
+<defs>
+<linearGradient id="c2-grad1" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0%" stop-color="var(--d-fill3)"/>
+<stop offset="100%" stop-color="var(--d-accent)"/>
+</linearGradient>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="20" y="50" width="660" height="14" rx="7" fill="url(#c2-grad1)"/>
+<text x="20" y="34" font-size="12" font-weight="700" fill="var(--d-muted)">干扰程度 →</text>
+
+<circle cx="90" cy="57" r="8" fill="var(--d-fill)" stroke="var(--d-stroke)" stroke-width="2"/>
+<text x="60" y="90" font-weight="700" font-size="12.5">Snackbar</text>
+<text x="30" y="108" font-size="10.5" fill="var(--d-muted)">Low · 可有可无</text>
+<text x="30" y="122" font-size="10.5" fill="var(--d-muted)">自动消失</text>
+
+<circle cx="350" cy="57" r="8" fill="var(--d-fill)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="310" y="90" font-weight="700" font-size="12.5">Notification</text>
+<text x="280" y="108" font-size="10.5" fill="var(--d-muted)">Medium · 可有可无</text>
+<text x="280" y="122" font-size="10.5" fill="var(--d-muted)">留到用户清掉或状态解决</text>
+
+<circle cx="610" cy="57" r="9" fill="var(--d-accent)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="580" y="90" font-weight="700" font-size="12.5">Dialog</text>
+<text x="560" y="108" font-size="10.5" fill="var(--d-muted)">High · 必须处理</text>
+<text x="560" y="122" font-size="10.5" fill="var(--d-muted)">挡住 app，直到回应</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>三者不是三种平行的选项，是<b>同一条「打扰使用者程度」光谱上的三个点</b>。选哪个的判断依据就是这件事对使用者来说有多急、多重要。</figcaption>
+</figure>
+
+<p><strong>Dialog 该用在</strong>：①关键资讯 ②要用户做决定 ③把多个任务包成一个流程。因为有干扰性，要<strong>少用</strong>。四种：Alert · Simple · Confirmation · Full screen。<strong>AlertDialog 结构</strong>：Title（选填）+ Content area + <strong>Action buttons（最多 3 个）</strong>。避免 dialog 里再开 dialog、放会捲动的内容（<strong>全萤幕 dialog 例外</strong>）。</p>
+
+<div class="box ok">
+<span class="lab">✅ Slide 50 的图题（没给答案）</span>
+<p><strong>问题 1</strong>：A 的按钮写「CANCEL / DISCARD」，B 写「NO / YES」，哪个更好？<strong>答案：A</strong>。「Discard draft?」配「YES/NO」要先把问句和答案在脑中对应，容易按错；A 的<strong>按钮文字直接描述会发生的动作</strong>，不需要转换，减少误按。</p>
+<p><strong>问题 2</strong>：全萤幕的「New event」表单——合理。栏位多（帐号、名称、地点……），塞进一般 AlertDialog 会太挤或需要捲动（违反规则），全萤幕正是这条规则的<strong>例外</strong>，能容纳多层输入。</p>
+</div>
+
+<h2 id="c2-s8">8. Navigation Drawer vs Tabs（2.2）</h2>
+
+<div class="tw">
+<table>
+<tr><th></th><th>Navigation Drawer</th><th>Tabs</th></tr>
+<tr><td>适合</td><td><strong>≥5 个</strong>顶层目的地；<strong>≥2 层</strong>导航层级；彼此<strong>不相关</strong>的目的地间快速切换</td><td>内容<strong>彼此相关</strong>，且<strong>同一层级</strong></td></tr>
+<tr><td>型式</td><td>侧边抽屉</td><td>Fixed Tabs／Scrollable Tabs</td></tr>
+</table>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Slide 57 的问题</span>
+<div class="qa"><p class="q">判断：新闻 app／天气 app／联络人 app</p>
+<p class="a">新闻 app 分类常超过 5 个且彼此不相关 → <b>Drawer</b>；天气 app 切换的是数量少、地位相同的城市 → <b>Tabs</b>；联络人 app 分类少、同层级（联络人/常用/群组） → <b>Tabs</b>。</p></div>
+</div>
+
+<h2 id="c2-s9">9. Menu (Toolbar)（2.3）</h2>
+
+<p>用 <strong>Toolbar widget</strong> 呈现动作与选项：<strong>Drawer／Title／Action Button／Overflow menu</strong>。优先顺序准则 <strong>FIT</strong>：<strong>F</strong>requent、<strong>I</strong>mportant、<strong>T</strong>ypical。</p>
+
+<pre><code>&lt;item app:showAsAction="ifRoom"/&gt;  &lt;!-- 有空间就显示图示 --&gt;
+&lt;item app:showAsAction="never"/&gt;   &lt;!-- 永远收进 overflow --&gt;</code></pre>
+
+<p><strong>Up Button</strong>：帮用户回主画面；<strong>child activity 必须在 manifest 宣告 parent</strong>。<strong>Context Sensitive Menu</strong>：长按或勾选清单项目后 Toolbar<strong>切换成另一套动作</strong>（例如收件箱选取邮件后变成「已选 2 项／删除／归档／标记」）。</p>
+
+<div class="box ok">
+<span class="lab">✅ Slide 5：为什么要用 Menu？</span>
+<p>把次要功能统一收在可预期的位置，让主画面保持干净；也是系统一致的设计模式，降低使用者的学习成本。</p>
+</div>
+
+<h2 id="c2-s10">10. Toast / Snackbar / Notification（2.3）★ <span class="tag">考卷 Q2b</span></h2>
+
+<div class="tw">
+<table>
+<tr><th></th><th>特点</th></tr>
+<tr><td><strong>Toast</strong></td><td>小弹窗，只占讯息需要的空间，<strong>没有互动动作</strong>，自动消失</td></tr>
+<tr><td><strong>Snackbar</strong></td><td>短讯息，<strong>可加一个动作</strong>（如 Undo）</td></tr>
+<tr><td><strong>Notification</strong></td><td>显示在<strong>app UI 之外</strong>（status bar／drawer／heads-up）</td></tr>
+</table>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Slide 21 的问题</span>
+<div class="qa"><p class="q">1. Toast 何时比 Notification 更合适？</p>
+<p class="a">讯息只是<b>当下操作的简短回馈</b>、使用者当时就在看画面、不需要事后处理时。</p></div>
+<div class="qa"><p class="q">2. 判断：储存空间不足／讯息被删除／有更新</p>
+<p class="a">储存空间不足 → <b>Notification</b>（持续性状态，留着直到处理）；讯息被删除 → <b>Snackbar</b>（当下操作，配 Undo）；<b>有更新可用 → Notification</b>（app 外也该看到，留着直到点击处理）。</p></div>
+</div>
+
+<h2 id="c2-s11">11. ★★ Design for Everyone（2.3） <span class="tag">考卷 Q2a</span></h2>
+
+<p>三个 device configuration：<strong>Languages · Screen · Versions of Android</strong>。核心一句话：<strong>把资源从 code 抽出来（externalize），独立维护</strong>。</p>
+
+<figure>
+<svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="系统按装置设定自动挑选对应 resource 的流程">
+<defs>
+<marker id="c2-arR" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="90" width="150" height="60" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="22" y="114" font-weight="700" font-size="12.5">装置设定</text>
+<text x="22" y="132" font-size="10.5" fill="var(--d-muted)">语言／萤幕尺寸</text>
+<text x="22" y="146" font-size="10.5" fill="var(--d-muted)">密度／API 版本</text>
+
+<rect x="280" y="90" width="150" height="60" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.6"/>
+<text x="294" y="114" font-weight="700" font-size="12.5">系统在执行时</text>
+<text x="294" y="132" font-size="10.5" fill="var(--d-muted)">比对所有 resource</text>
+<text x="294" y="146" font-size="10.5" fill="var(--d-muted)">目录，自动挑选</text>
+
+<line x1="166" y1="120" x2="278" y2="120" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c2-arR)"/>
+
+<rect x="552" y="8" width="140" height="34" rx="6" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="562" y="30" font-size="10.5">values-ms/</text>
+<rect x="552" y="50" width="140" height="34" rx="6" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="562" y="72" font-size="10.5">values-zh/</text>
+<rect x="552" y="92" width="140" height="34" rx="6" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="562" y="114" font-size="10.5">layout-large/</text>
+<rect x="552" y="134" width="140" height="34" rx="6" fill="var(--d-fill)" stroke="var(--d-stroke)"/>
+<text x="562" y="156" font-size="10.5">drawable-hdpi/</text>
+<rect x="552" y="176" width="140" height="34" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="2"/>
+<text x="562" y="198" font-size="10.5" font-weight="700">✓ 挑中的那一份</text>
+
+<path d="M430,120 L470,120 L470,193 L550,193" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c2-arR)"/>
+<text x="10" y="218" font-size="11" fill="var(--d-muted)">Code 完全不用改，系统按当下装置状态每次自动重新挑选</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>右边是同一份资料的好几个版本，各自放在按规则命名的目录里；系统在执行时只是<b>比对装置状态、挑出符合的那一份</b>，开发者的 code 里完全没有 if/else 判断装置类型。这就是「externalize resources」这句话实际发生的样子。</figcaption>
+</figure>
+
+<h3>语言</h3>
+<ul>
+<li>字串抽到 <code>res/values/strings.xml</code>；建立各语言目录 <code>values-ms/</code>（马来文）、<code>values-zh/</code>（中文）……</li>
+<li><strong>系统在执行时按装置当前 locale 自动挑选</strong>，code 完全不用改</li>
+<li>取用：<code>R.string.&lt;name&gt;</code> / <code>getString(...)</code>；阵列 <code>resources.getStringArray(...)</code></li>
+<li>语言码：<code>en</code>、<code>en_GB</code>、<code>zh</code>、<code>zh_CN</code>、<code>ms</code>（Bahasa Melayu）、<code>in</code>（印尼语）</li>
+</ul>
+
+<h3>萤幕</h3>
+<div class="tw">
+<table>
+<tr><th>分类</th><th>值</th></tr>
+<tr><td>Size</td><td>small / normal / large / xlarge</td></tr>
+<tr><td>Density</td><td>ldpi / mdpi / hdpi / xhdpi</td></tr>
+</table>
+</div>
+<p>版面：<code>layout/</code>、<code>layout-land/</code>、<code>layout-large/</code>……<strong>档名要完全一样，内容不同</strong>。图片：<code>drawable-ldpi/ mdpi/ hdpi/ xhdpi/</code>。<strong>Display cutout</strong>：API 28 起支援，模式 <code>default／shortEdges／never</code>。折叠机/大萤幕用 <strong>WindowManager + FoldingFeature</strong>。</p>
+
+<h3>版本</h3>
+<p><strong><code>minSdkVersion</code></strong> = 相容的最低 API level → 设低 = <strong>支援更多装置</strong>。<strong><code>targetSdkVersion</code></strong> = 设计测试过的最高 API level → 设高 = <strong>用到最新功能</strong>。</p>
+
+<div class="box ok">
+<span class="lab">✅ Slide 58 的四个问题</span>
+<div class="qa"><p class="q">3. 评论：「为了兼容所有萤幕，图片该用最好品质产生」</p>
+<p class="a"><b>不完全正确。</b>只用一份高品质图会：①在低密度装置上被系统缩小，<b>浪费记忆体与流量</b> ②让 APK 变大。正确做法是<b>各密度各准备一份对应解析度</b>，放进各自的 drawable-xxdpi/ 目录，系统自动挑最合适的。</p></div>
+<div class="qa"><p class="q">4. 为什么 min SDK 该设最低、target SDK 该设最新？</p>
+<p class="a">min SDK 低是为了让 app 能装在<b>尽可能多的装置</b>上；target SDK 新是为了<b>用上最新功能、效能优化与安全改进</b>，也符合上架要求。两者不冲突：min 决定谁能装，target 决定装了跑得多好。</p></div>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>To support different races and the wide variety of devices available, the app should externalize its resources: provide alternative string resources for each supported language (e.g. values-ms/, values-zh/), so the system automatically selects the matching translation based on the device's locale at runtime; and provide alternative layout and bitmap resources for different screen sizes and densities (e.g. layout-large/, drawable-hdpi/), so the correct version is selected automatically without any code branching. Setting a low minSdkVersion additionally widens the range of devices, including older and lower-end ones, that can install the app.</p>
+</div>
+
+<h2 id="c2-s12">12. Accessibility（2.3）</h2>
+
+<p><strong>定义</strong>：不论能力如何，使用者都能成功地<strong>导航、理解、使用</strong>一个 app。三大面向：<strong>Navigation · Readability · Guidance and Feedback</strong>。</p>
+
+<div class="tw">
+<table>
+<tr><th>#</th><th>面向</th><th>做法</th></tr>
+<tr><td>1</td><td>Navigation</td><td>支援 screen reader（<code>contentDescription</code>），相关内容<strong>分组</strong></td></tr>
+<tr><td>2</td><td>Navigation</td><td>支援键盘/手势；<strong>不要淡出消失</strong>；<strong>扁平导航结构</strong></td></tr>
+<tr><td>3</td><td>Navigation</td><td>触控目标 <strong>≥48×48px</strong>，间距 <strong>≥8dp</strong></td></tr>
+<tr><td>4</td><td>Readability</td><td>足够色彩对比；<strong>不要只靠颜色</strong>传达资讯</td></tr>
+<tr><td>5</td><td>Readability</td><td>媒体提供暂停/停止控制、字幕</td></tr>
+<tr><td>6</td><td>Guidance</td><td>互动控件清楚可发现；<strong>全 app 用词一致</strong></td></tr>
+</table>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="不同萤幕尺寸下拇指热区的变化">
+<g font-family="inherit" font-size="11" fill="var(--d-text)">
+<text x="8" y="16" font-weight="700" font-size="12">4" 手机</text>
+<rect x="8" y="24" width="130" height="160" rx="10" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<ellipse cx="73" cy="140" rx="55" ry="44" fill="var(--d-accent)" opacity="0.25"/>
+<ellipse cx="73" cy="150" rx="35" ry="30" fill="var(--d-accent)" opacity="0.45"/>
+<text x="40" y="70" font-size="10" fill="var(--d-muted)">难点</text>
+
+<text x="192" y="16" font-weight="700" font-size="12">5.5" 手机</text>
+<rect x="192" y="24" width="150" height="160" rx="10" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<ellipse cx="267" cy="150" rx="60" ry="44" fill="var(--d-accent)" opacity="0.22"/>
+<ellipse cx="267" cy="160" rx="38" ry="28" fill="var(--d-accent)" opacity="0.4"/>
+<text x="220" y="60" font-size="10" fill="var(--d-muted)">难点区域变大</text>
+
+<text x="392" y="16" font-weight="700" font-size="12">6" 手机</text>
+<rect x="392" y="24" width="170" height="160" rx="10" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<ellipse cx="477" cy="158" rx="65" ry="42" fill="var(--d-accent)" opacity="0.18"/>
+<ellipse cx="477" cy="168" rx="40" ry="26" fill="var(--d-accent)" opacity="0.35"/>
+<text x="410" y="52" font-size="10" fill="var(--d-muted)">顶部/两侧角落</text>
+<text x="410" y="66" font-size="10" fill="var(--d-muted)">变得很难点到</text>
+
+<text x="580" y="90" font-size="10.5" fill="var(--d-muted)">深色＝容易</text>
+<text x="580" y="106" font-size="10.5" fill="var(--d-muted)">浅色＝还行</text>
+<text x="580" y="122" font-size="10.5" fill="var(--d-muted)">空白＝困难</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>萤幕越大，拇指能轻松点到的区域（深色）越往下方靠中间缩，顶部与两侧角落变得越难点。设计含意：<b>常用的主要动作要放在下方容易点到的区域</b>，不能塞在顶部角落。</figcaption>
+</figure>
+
+<p><strong>Gesture Navigation</strong>：Android 10 (API 29) 起支援。app 要①<strong>内容延伸到边缘</strong> ②<strong>处理手势冲突</strong>。<strong>色盲测试</strong>（Ishihara Test）证明「不要只靠颜色传达资讯」——只用红/绿区分可以/不可以，色盲使用者可能完全分不出差异。</p>
+
+<hr>
+
+<h2 id="c2-mislead">⚠️ Slide 讲得不准确或省略的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更准确的理解</th><th>考试怎么办</th></tr>
+<tr><td>2.1 S11</td><td>Compose「flat tree」听起来完全没有层级</td><td>Composable 间仍是父子调用关系，「扁平」指不用像传统 View 建立整棵物件树逐层 measure/layout</td><td>照 slide 答「flat tree, only recompose changed parts」即可</td></tr>
+<tr><td>2.2 S4</td><td>「Up 永远不会离开 app」讲得像绝对规则</td><td>这是设计规范；若开发者没照规则宣告 parent activity，实作上可能表现异常</td><td>照 slide 答规则本身</td></tr>
+<tr><td>2.3 S40</td><td>Min/Target SDK「设最低/最新」讲得很绝对</td><td>实务上 min SDK 太低要处理很多旧版本兼容问题，通常取够低但不麻烦的版本</td><td>考试照 slide 答（标准答案）</td></tr>
+</table>
+</div>
+
+<h2 id="c2-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>Composable function</td><td>可组合函式</td><td>用 @Composable 标记、画出一小块 UI 的 Kotlin function</td></tr>
+<tr><td>Recomposition</td><td>重组</td><td>资料变动时只重新画有变动的那部分 UI</td></tr>
+<tr><td>ConstraintLayout</td><td>约束版面</td><td>扁平层级、每个 view 至少一水平一垂直约束</td></tr>
+<tr><td>Back stack</td><td>后退堆叠</td><td>Navigation state 以堆叠形式记录访问过的画面</td></tr>
+<tr><td>Up button</td><td>向上按钮</td><td>沿逻辑层级往上、永远不离开 app</td></tr>
+<tr><td>Fragment</td><td>片段</td><td>Layout+Code 的可重用 UI 模组，依附 Activity</td></tr>
+<tr><td>Externalize resources</td><td>资源外部化</td><td>把字串/版面/图片抽出 code，独立维护，系统自动挑选</td></tr>
+<tr><td>minSdkVersion</td><td>最低支援版本</td><td>设低支援更多装置</td></tr>
+<tr><td>targetSdkVersion</td><td>目标测试版本</td><td>设高用上最新功能</td></tr>
+<tr><td>Accessibility</td><td>无障碍</td><td>不论能力都能导航、理解、使用 app</td></tr>
+</table>
+</div>
+
+<h2 id="c2-cheat">Cheat Sheet</h2>
+<p><strong>Compose 三积木</strong>：Row／Column／Box／Modifier</p>
+<p><strong>★ 优化 layout 三招</strong>：扁平 tree 只 recompose 变动部分／composable function 重用／LazyColumn 只组合可见项目</p>
+<p><strong>CheckBox</strong>＝多选／<strong>RadioButton</strong>＝单选要全可见／<strong>Spinner</strong>＝单选省空间</p>
+<p><strong>五大 Navigation Principles</strong>：固定起点／堆叠／Up=Back（app内）／<strong>Up 不出 app</strong>／Deep link 模拟手动导航</p>
+<p><strong>Dialog(High,必须处理) ＞ Notification(Medium,留着) ＞ Snackbar(Low,自动消失)</strong></p>
+<p><strong>Drawer</strong>：≥5项／≥2层／不相关　　<strong>Tabs</strong>：相关／同层级</p>
+<p><strong>★★ Design for Everyone</strong>：语言（values-ms/）／萤幕（layout-large/、drawable-hdpi/）／版本（minSdk低、targetSdk新）</p>
+<p><strong>Accessibility</strong>：触控目标 ≥48×48px、间距 ≥8dp／不只靠颜色／扁平导航／edge-to-edge 手势</p>
+
+<hr>
+
+<h2 id="c2-practice">Practice</h2>
+
+<h3>A. MCQ (5)</h3>
+<ol>
+<li>Which of the following replaces the traditional <code>&lt;include&gt;</code> tag for reusing layouts in Jetpack Compose?<br>(A) ViewStub (B) composable function (C) ConstraintLayout (D) LazyColumn</li>
+<li>MyGOV wants to let a user undo deleting a notification. Which component is most suitable?<br>(A) Toast (B) Snackbar (C) Notification (D) AlertDialog</li>
+<li>Which is <b>not</b> a suitable use case for a Navigation Drawer?<br>(A) more than 5 top-level destinations (B) related content at the same level (C) 2+ levels of navigation hierarchy (D) unrelated destinations</li>
+<li>To support Malay and Chinese in MyGOV, which directories should be created?<br>(A) drawable-ms/, drawable-zh/ (B) layout-ms/, layout-zh/ (C) values-ms/, values-zh/ (D) raw-ms/, raw-zh/</li>
+<li>Why does LazyColumn outperform a traditional ListView for a 100+ item list?<br>(A) it uses a different programming language (B) it only composes items currently visible on screen (C) it disables scrolling (D) it caches images only</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw"><table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>B</strong></td><td>Compose reuses layouts via composable functions, not the XML-only &lt;include&gt; tag.</td></tr>
+<tr><td>2</td><td><strong>B</strong></td><td>Snackbar can carry an Undo action and is brief, matching the scenario exactly.</td></tr>
+<tr><td>3</td><td><strong>B</strong></td><td>That description is Tabs' use case, not Drawer's.</td></tr>
+<tr><td>4</td><td><strong>C</strong></td><td>String resources live under values-&lt;lang&gt;/, unrelated to drawable/layout/raw.</td></tr>
+<tr><td>5</td><td><strong>B</strong></td><td>LazyColumn composes and draws only visible items; off-screen items aren't built at all.</td></tr>
+</table></div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Explain how Jetpack Compose achieves both "layout reuse" and "load on demand" without &lt;include&gt; or ViewStub. <em>(6 marks)</em></li>
+<li>MyGOV's renewal form has many fields. Justify using a full-screen dialog instead of a standard AlertDialog, and state which general dialog rule this is an exception to. <em>(5 marks)</em></li>
+<li>Comment on: "To make an image compatible with all screen sizes, always produce it at the best quality possible." <em>(5 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> Compose replaces &lt;include&gt; with <b>composable functions</b> — a reusable piece of UI is written as its own @Composable and simply called wherever needed, optionally parameterised. It achieves on-demand loading natively through <b>LazyColumn/LazyGrid</b>, which compose and draw only the items currently visible on screen; items are released once scrolled off and recomposed when scrolled back, without any manual ViewStub-style deferred inflation.</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> The general rule is to <b>avoid scrolling content inside a dialog</b>, since a standard-sized dialog has limited space and many fields would feel cramped or force scrolling. The explicit <b>exception</b> is the full-screen dialog, which is designed to accommodate more content without excessive visual noise. A multi-field renewal form (account, name, address, uploads…) fits this exception well, since it needs the space a full-screen dialog provides while retaining the focused, task-like feel of a dialog.</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> This is <b>not entirely correct</b>. Shipping only one maximum-quality image means low-density devices must scale it down at runtime, wasting memory and increasing APK size unnecessarily. The correct approach is to provide a separate image for each density bucket (drawable-ldpi/mdpi/hdpi/xhdpi/), letting the system pick the one that matches the device exactly — balancing visual quality against resource efficiency.</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>Choose Toast, Snackbar, Notification or Dialog for: (a) licence renewal approved while app is closed (b) confirming a payment amount before deduction (c) undoing a swipe-deleted record (d) confirming "copied to clipboard".</li>
+<li>List the four directories needed to support portrait phone, landscape phone, and tablet layouts, and explain how the system chooses between them.</li>
+<li>Decide Navigation Drawer or Tabs for: (a) MyGOV's 8 service categories (b) three steps of the same application form.</li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> (a) <b>Notification</b> — must reach the user outside the app. (b) <b>Dialog (Confirmation)</b> — money is involved, response is mandatory. (c) <b>Snackbar</b> — brief, with an Undo action. (d) <b>Toast</b> — instant feedback, no interaction needed.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> <code>layout/</code> (default portrait), <code>layout-land/</code> (landscape), <code>layout-large/</code> (tablet portrait), <code>layout-large-land/</code> (tablet landscape) — all sharing the <b>same file name</b>. At runtime the system checks the device's screen size and current orientation and loads the matching file automatically; no branching code is needed.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> (a) <b>Navigation Drawer</b> — more than 5 unrelated top-level categories. (b) <b>Tabs</b> — few steps, related, same level, and users often want to jump back to an earlier step directly.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>LazyColumn only composes visible items, while a full recomposition only re-renders changed parts. Explain why these are two different optimisations solving two different problems. <em>(6 marks)</em></li>
+<li>Why does the Up button need a declared parent in the manifest while the Back key needs no such declaration? <em>(6 marks)</em></li>
+</ol>
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> "Only compose visible items" solves an <b>initial-load / memory</b> problem — deciding how much should ever be built in the first place, avoiding composing a thousand off-screen items. "Only recompose changed parts" solves a <b>re-render</b> problem — once something is already on screen, deciding how little needs to be redrawn when its underlying data changes. Both can happen together: LazyColumn first decides which items to compose at all, and each composed item may later recompose independently when only its own data changes.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> The Back key's behaviour doesn't depend on app structure — it simply replays the system-tracked history of screens the user actually visited, which the system already knows without asking the app. The Up button's behaviour depends on a <b>logical hierarchy the developer defines</b> — which screen "should" sit above this one — and that is not always the same as how the user actually arrived (e.g. jumping in from a notification with no visited parent). The system cannot infer this logical relationship on its own, so the developer must declare each activity's parent in the manifest, allowing Up to insert the correct parent screens when none were actually visited.</p>
+</div>
+
+<h2 id="c2-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>展开在哪一章</th></tr>
+<tr><td>Fragment 依附 Activity、有自己的 view lifecycle</td><td><strong>Ch 3</strong> — Activity Lifecycle</td></tr>
+<tr><td>Navigation 的 back stack 概念</td><td><strong>Ch 3</strong> — Activity 的 back stack（LIFO）</td></tr>
+<tr><td>Design for Everyone 的 resource 分离</td><td><strong>Ch 1</strong> — App Resources 概念的具体实作</td></tr>
+<tr><td>LazyColumn 载入大量资料</td><td><strong>Ch 4.1</strong> — Room / SQLite 搭配 LazyColumn 显示清单资料</td></tr>
+</table>
+</div>
+
+</section>
+
+<section class="chapter" id="chapter-3">
+<header class="top">
+  <p class="kicker">AMIT3353 · Mobile Application Development</p>
+  <h1>Chapter 3 — Mobile Application Models</h1>
+  <p class="lede">这一章讲 Activity、Intent 与生命周期，是整份考卷唯一一处直接考「判断」题型的地方（explicit / implicit intent，4 小题 12 分）。Slide 在 Intent 的两个流程图和 lifecycle 图上讲得很扎实，但把「怎么判断」这件事留给学生自己归纳——这份笔记把判断口诀、六个 callback 该做什么、以及 4 页没给答案的 Question 全部补上。</p>
+</header>
+
+<div class="toc">
+<strong>本章地图</strong>
+<ol>
+<li><a href="#c3-s1">Activity 与 Back Stack</a></li>
+<li><a href="#c3-s2">Intent 详解</a> <span class="tag">考卷 Q2c</span></li>
+<li><a href="#c3-s3">取得 Activity 的回传结果</a></li>
+<li><a href="#c3-s4">Activity Lifecycle</a> <span class="tag">高频</span></li>
+<li><a href="#c3-s5">Configuration Change 与 Compose</a></li>
+<li><a href="#c3-s6">保存与还原 Instance State</a></li>
+</ol>
+</div>
+
+<div class="box ok">
+<span class="lab">🎯 这一章在考卷上怎么出现</span>
+<p>MyGOV Malaysia 那份卷 Q2(c) 直接考本章：「Identify the suitable intent type (explicit or implicit) for each task, with a simple justification」——四小题各 3 分，共 12 分。第 2 节结尾有完整判断口诀和四小题的满分答法。</p>
+<p>Lifecycle 六个 callback 该做什么、instance state 怎么保存，是历年常考的简答题型，第 4、6 节各有一套完整答题句。</p>
+</div>
+
+<h4>前置知识</h4>
+<ul>
+<li><strong>Activity、Intent</strong> 的基本定义在 <strong>Chapter 1</strong> 已经讲过——Activity 是一个有 UI 的画面，Intent 是启动 component 的讯息物件。这一章是把 Intent 的内部结构和 Activity 的生命周期讲透。</li>
+<li><strong>Callback</strong> — 系统在特定时机自动呼叫的一个 function，你只需要覆写它、填入该做的事，不需要自己去调用它。Lifecycle 的六个方法全部是 callback。</li>
+</ul>
+
+<h2 id="c3-s1">1. Activity 与 Back Stack</h2>
+
+<ul>
+<li><strong>Activity = UI</strong>，"main" activity 是 app 的第一个画面</li>
+<li>Activity 可以被<strong>同一个 app 内的另一个 activity</strong>启动，也可以被<strong>别的 app</strong>启动</li>
+<li><strong>必须在 Manifest File 宣告</strong>才能被系统存取（跟 Ch1 讲的「未宣告的 component 不存在」是同一件事）</li>
+</ul>
+
+<pre><code>&lt;manifest ... &gt;
+  &lt;application ... &gt;
+    &lt;activity android:name=".ExampleActivity" /&gt;
+    &lt;activity android:name=".SecondExampleActivity" /&gt;
+  &lt;/application&gt;
+&lt;/manifest&gt;</code></pre>
+
+<p><strong>关闭 Activity 的两个方法</strong>：<code>finish()</code>——关掉当前这个 activity；<code>finishActivity()</code>——关掉<strong>之前用 <code>startActivityForResult()</code> 启动过的另一个</strong> activity。</p>
+
+<h3>Back Stack（后退堆叠）</h3>
+<p>每次开新 activity，前一个就被 stop，但系统<strong>把它保留在一个堆叠里</strong>——这个堆叠是 <strong>Last In, First Out (LIFO)</strong>。使用者按 Back 键时，最上层的 activity 被 <strong>pop</strong> 出去，堆叠里的前一个恢复（resume）。</p>
+
+<figure>
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Activity back stack 的推入与弹出">
+<defs>
+<marker id="c3-arA" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<text x="8" y="16" font-weight="700" font-size="12.5">① 开 Activity 1</text>
+<rect x="8" y="26" width="120" height="34" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="24" y="47" font-size="11.5">Activity 1 (Main)</text>
+
+<text x="8" y="86" font-weight="700" font-size="12.5">② 开 Activity 2</text>
+<rect x="8" y="96" width="120" height="30" rx="6" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="24" y="115" font-size="11">Activity 1</text>
+<rect x="8" y="128" width="120" height="30" rx="6" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="24" y="147" font-size="11.5">Activity 2</text>
+
+<text x="8" y="176" font-weight="700" font-size="12.5">③ 开 Activity 3</text>
+<rect x="8" y="186" width="120" height="24" rx="5" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="24" y="202" font-size="10.5">Activity 1</text>
+<rect x="8" y="212" width="120" height="24" rx="5" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="24" y="228" font-size="10.5">Activity 2</text>
+<rect x="8" y="238" width="120" height="24" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="24" y="254" font-size="11">Activity 3</text>
+
+<line x1="176" y1="160" x2="230" y2="160" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arA)"/>
+<text x="176" y="150" font-size="11" fill="var(--d-muted)">按 Back</text>
+
+<rect x="240" y="130" width="140" height="24" rx="5" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="256" y="146" font-size="10.5">Activity 1</text>
+<rect x="240" y="156" width="140" height="24" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="256" y="172" font-size="11">Activity 2 ← resumed</text>
+<text x="240" y="118" font-weight="700" font-size="12.5">④ pop Activity 3</text>
+
+<line x1="392" y1="168" x2="446" y2="168" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arA)"/>
+<text x="392" y="158" font-size="11" fill="var(--d-muted)">按 Back</text>
+
+<rect x="456" y="156" width="140" height="24" rx="5" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="472" y="172" font-size="11">Activity 1 ← resumed</text>
+<text x="456" y="144" font-weight="700" font-size="12.5">⑤ pop Activity 2</text>
+
+<rect x="608" y="30" width="82" height="200" rx="8" fill="none" stroke="var(--d-stroke)" stroke-dasharray="4 3"/>
+<text x="620" y="50" fill="var(--d-muted)" font-size="11">堆叠</text>
+<text x="620" y="66" fill="var(--d-muted)" font-size="11">顶端＝</text>
+<text x="620" y="80" fill="var(--d-muted)" font-size="11">看得见</text>
+<text x="620" y="96" fill="var(--d-muted)" font-size="11">的那个</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>每一步新开的 activity 都堆在最上面，之前的没有被销毁，只是<b>看不见</b>了。按 Back 永远是<b>弹出最上面那一个</b>，不能跳着弹。这就是为什么「回到上一步」这件事在 Android 里几乎不用自己写逻辑——系统的堆叠已经帮你记好了。</figcaption>
+</figure>
+
+<div class="box ok">
+<span class="lab">✅ Slide 12 的四个问题（没给答案）</span>
+<div class="qa"><p class="q">1. Activity 在 Android 里的主要用途是什么？</p>
+<p class="a">Activity 提供<b>一个视窗（window）来画出使用者介面</b>，是使用者能实际看到、能互动的<b>一个画面</b>。一个 app 通常由多个 activity 组成，其中一个是 main activity。</p></div>
+<div class="qa"><p class="q">2. 为什么 Activity 一定要在 manifest 宣告？</p>
+<p class="a">因为 manifest 是系统<b>启动任何 component 前读的第一个档案</b>，没有宣告的 activity 对系统来说等于不存在，永远不能被启动——这跟 Ch1 讲的规则完全一致。</p></div>
+<div class="qa"><p class="q">3. Android 用什么资料结构管理 app 的 component？</p>
+<p class="a"><b>Stack（堆叠），且是 Last In First Out (LIFO)</b>。新开的 activity 推到最上面，Back 键把最上面的弹出。</p></div>
+<div class="qa"><p class="q">4. 使用者离开一个 Activity 后，它会发生什么？</p>
+<p class="a">它会被<b>stop</b>，但<b>保留在 back stack 里</b>，不会立刻被销毁；只有在系统需要回收记忆体，或使用者一路按 Back 把它弹出堆叠，它才真正走到 <code>onDestroy</code>。</p></div>
+</div>
+
+<h2 id="c3-s2">2. Intent 详解 <span class="tag">考卷 Q2c</span></h2>
+
+<p>Ch1 讲过 Intent 是「启动 component 的讯息」，这一章讲它<strong>携带什么、怎么被系统处理</strong>。</p>
+
+<h3>2.1 Intent 携带的五样东西</h3>
+
+<div class="tw">
+<table>
+<tr><th>栏位</th><th>说明</th></tr>
+<tr><td><strong>Component Name</strong></td><td>要启动的确切名称。用 <b>explicit intent</b> 时才会填；<b>启动 Service 时，即使能用 implicit，也建议一定指名，比较安全</b></td></tr>
+<tr><td><strong>Action</strong></td><td>决定 intent 其余部分该怎么解读。常见：<code>ACTION_VIEW</code>、<code>ACTION_SEND</code>、<code>ACTION_DIAL</code>、<code>ACTION_PICK</code></td></tr>
+<tr><td><strong>Data</strong></td><td>要操作的资料，用 <b>URI</b> 表示，可以再加上 <b>MIME type</b></td></tr>
+<tr><td><strong>Category</strong></td><td>选填，补充说明该由哪种 component 处理，如 <code>CATEGORY_BROWSABLE</code>、<code>CATEGORY_LAUNCHER</code></td></tr>
+<tr><td><strong>Extra</strong></td><td>key-value pairs，携带额外资料；<code>putExtra(key, value)</code> 放入，<code>getExtras()</code> / <code>getStringExtra()</code> 取出</td></tr>
+</table>
+</div>
+
+<p><strong>Data 常见对照表（Action + Data → 效果）</strong></p>
+<div class="tw">
+<table>
+<tr><th>Action</th><th>Data</th><th>效果</th></tr>
+<tr><td><code>ACTION_VIEW</code></td><td><code>content://contacts/people/1</code></td><td>看某个联络人</td></tr>
+<tr><td><code>ACTION_VIEW</code></td><td><code>tel:0312345678</code></td><td>打开拨号画面</td></tr>
+<tr><td><code>ACTION_VIEW</code></td><td><code>geo:47.6,-122.3</code></td><td>在地图上标出该点</td></tr>
+<tr><td><code>ACTION_VIEW</code></td><td><code>http://www.example.com</code></td><td>用浏览器开网页</td></tr>
+<tr><td><code>ACTION_SEND</code></td><td>纯文字 + <code>text/plain</code></td><td>分享文字（叫出分享清单）</td></tr>
+<tr><td><code>ACTION_SEND</code></td><td>图片 URI + <code>image/jpeg</code></td><td>分享图片</td></tr>
+</table>
+</div>
+
+<h3>2.2 Explicit vs Implicit</h3>
+
+<figure>
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Explicit intent 与 implicit intent 的处理流程对照">
+<defs>
+<marker id="c3-arB" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<text x="8" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">Explicit — 同一个 app 内</text>
+<rect x="8" y="26" width="140" height="46" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="22" y="53" font-weight="700" font-size="12">Activity A</text>
+<rect x="8" y="150" width="140" height="46" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="22" y="177" font-weight="700" font-size="12">Activity B</text>
+<text x="10" y="145" font-size="10.5" fill="var(--d-muted)">同一个 App 里</text>
+
+<rect x="188" y="88" width="130" height="34" rx="6" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="200" y="109" font-size="11.5">Intent（指名 B）</text>
+<rect x="188" y="130" width="130" height="34" rx="6" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="200" y="151" font-size="11">Android System</text>
+
+<path d="M78,72 L78,105 L186,105" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arB)"/>
+<path d="M253,164 L253,173 L78,173 L78,150" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arB)"/>
+<text x="330" y="142" font-size="10.5" fill="var(--d-muted)">找同一 app<br/>内符合的 component</text>
+
+<rect x="0" y="230" width="330" height="55" rx="7" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-dasharray="3 3"/>
+<text x="12" y="250" font-size="11.5">结果：<b>一定</b>找到 B（因为指名了），直接启动。</text>
+<text x="12" y="270" font-size="11">例：Gmail 主画面 → 撰写新邮件画面。</text>
+
+<line x1="360" y1="12" x2="360" y2="292" stroke="var(--d-line)" stroke-dasharray="2 3"/>
+
+<text x="384" y="16" font-weight="700" font-size="12.5" fill="var(--d-muted)">Implicit — 交给别的 app</text>
+<rect x="384" y="26" width="140" height="46" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="398" y="46" font-weight="700" font-size="12">Activity</text>
+<text x="398" y="62" font-size="10" fill="var(--d-muted)">(App A)</text>
+
+<rect x="384" y="216" width="140" height="46" rx="7" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="398" y="236" font-weight="700" font-size="12">Activity</text>
+<text x="398" y="252" font-size="10" fill="var(--d-muted)">(App B — 别人的)</text>
+
+<rect x="564" y="88" width="120" height="34" rx="6" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="574" y="109" font-size="10.5">Intent（只说动作）</text>
+<rect x="564" y="130" width="120" height="34" rx="6" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="574" y="151" font-size="10.5">System 搜寻所有</text>
+<text x="574" y="161" font-size="9.5">app 的 intent filter</text>
+
+<path d="M454,72 L454,105 L562,105" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arB)"/>
+
+<path d="M624,164 L624,188 L454,188" fill="none" stroke="var(--d-ok)" stroke="#2f6b3f" stroke-width="1.6" stroke-dasharray="1 0" marker-end="url(#c3-arB)"/>
+<text x="470" y="182" font-size="10" fill="var(--d-muted)">有符合 → 启动</text>
+<path d="M624,164 L624,270 L524,270 L524,239" fill="none" stroke="var(--d-warn)" stroke="#9a6b00" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#c3-arB)"/>
+<text x="530" y="266" font-size="10" fill="var(--d-muted)">没符合 → App crash</text>
+
+<text x="384" y="200" font-size="10" fill="var(--d-muted)">若多个 app 都符合 → 弹出选择清单</text>
+</g>
+</svg>
+<figcaption><b>看这里：</b>两边的关键差异在中间那个 Android System 框在<b>搜寻的范围</b>——Explicit 只在自己 app 里找（一定成功），Implicit 在<b>所有 app 的 intent filter</b> 里找（可能找不到而 crash，也可能多个符合而弹出选择框）。这就是为什么用implicit intent前，程式上要先用 <code>resolveActivity()</code> 检查有没有 app 能处理，否则要在 manifest 用 <code>&lt;queries&gt;</code> 宣告（API 30+）。</figcaption>
+</figure>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>An explicit intent names the exact component to start — typically the package name or fully-qualified class name — and is used to launch another activity within the same app; the system only searches that app's own components, so it is guaranteed to find a match. An implicit intent declares a general action to be performed without naming a component, and the system searches every installed app's intent filters for a match; if none is found the app crashes unless the caller checks first, and if several apps match, the system shows the user a chooser dialog.</p>
+</div>
+
+<h3>2.3 判断口诀</h3>
+<p><strong>目标在自己 app 里 → Explicit；要借别人的 app 做 → Implicit。</strong></p>
+
+<div class="box ok">
+<span class="lab">✅✅ 考卷 Q2(c) 满分答法 — 4 小题各 3 分</span>
+<div class="tw">
+<table>
+<tr><th>任务</th><th>类型</th><th>Justification</th></tr>
+<tr><td>(i) 从首页跳到设定页</td><td><strong>Explicit</strong></td><td>设定页是 MyGOV <strong>自己 app 内</strong>的 Activity，用类别名称直接指名即可，不需要交给别的 app</td></tr>
+<tr><td>(ii) 寄 email 给政府支援</td><td><strong>Implicit</strong></td><td>发信要靠<strong>使用者装置上的 email app</strong>处理，MyGOV 自己不写邮件功能，用 <code>ACTION_SEND</code> 让系统去找能处理的 app</td></tr>
+<tr><td>(iii) 新增驾照更新申请</td><td><strong>Explicit</strong></td><td>申请表单画面是 MyGOV <strong>自己的 Activity</strong>，直接指名启动</td></tr>
+<tr><td>(iv) 开地图导航到最近的 UTC</td><td><strong>Implicit</strong></td><td>导航要靠<strong>使用者装置上的地图 app</strong>（如 Google Maps），用 <code>ACTION_VIEW</code> + <code>geo:</code> URI 交给系统去找</td></tr>
+</table>
+</div>
+</div>
+
+<h3>2.4 Intent Filter</h3>
+<p>用 <code>&lt;intent-filter&gt;</code> 向系统<strong>宣告自己的 app 能接收哪些 implicit intent</strong>：</p>
+<pre><code>&lt;activity android:name="ShareActivity"&gt;
+  &lt;intent-filter&gt;
+    &lt;action android:name="android.intent.action.SEND"/&gt;
+    &lt;category android:name="android.intent.category.DEFAULT"/&gt;
+    &lt;data android:mimeType="text/plain"/&gt;
+  &lt;/intent-filter&gt;
+&lt;/activity&gt;</code></pre>
+<p>这段宣告的意思是：「我能处理别人送来的 <code>ACTION_SEND</code>、资料类型是纯文字的 intent」——例如别的 app 想分享一段文字时，这个 activity 就有机会出现在选择清单里。</p>
+
+<div class="box warn">
+<span class="lab">⚠️ API 30+ 的额外规则</span>
+<p>Android 11（API 30）起，如果你的 app 想用 implicit intent 去查询、启动别的 app，必须先在自己的 manifest 用 <code>&lt;queries&gt;</code> 宣告你关心哪些类型的 app（例如浏览器、相机、相册），否则系统会限制你查询到的结果，即使对方 app 确实存在。</p>
+</div>
+
+<div class="box ok">
+<span class="lab">✅ Slide 38 的问题</span>
+<div class="qa"><p class="q">1. Explicit 和 implicit intent 最主要的差别是什么？</p>
+<p class="a">Explicit <b>指名确切要启动的 component</b>，只在自己 app 内搜寻，一定成功；Implicit <b>只宣告要做的动作</b>，系统在所有 app 的 intent filter 里搜寻，可能找不到（crash）或找到多个（弹出选择）。</p></div>
+<div class="qa"><p class="q">2. 判断三个情境：</p>
+<p class="a">a. 分享一个网址 → <b>Implicit</b>（<code>ACTION_SEND</code>，交给任何能处理文字/网址分享的 app）　b. 播放从网络下载的音讯档 → <b>Implicit</b>（<code>ACTION_VIEW</code> + 音讯 MIME type，交给装置上的音乐播放 app）　c. 把手机音效改成静音模式 → <b>Implicit</b>（这类系统设定通常没有对应的「自己 app 内」画面，需要靠系统层级的 intent 或 API 处理，不属于自己 app 的 component）</p></div>
+</div>
+
+<h2 id="c3-s3">3. 取得 Activity 的回传结果</h2>
+
+<p>有时候启动一个 activity 是为了<strong>拿到它的结果</strong>（例如叫用户选一个联络人，选完要把选到的那个传回来）。</p>
+
+<div class="tw">
+<table>
+<tr><th></th><th>做法</th></tr>
+<tr><td><strong>旧（已 deprecated）</strong></td><td><code>startActivityForResult(intent, requestCode)</code> 启动，在 <code>onActivityResult(requestCode, resultCode, data)</code> 里接收结果</td></tr>
+<tr><td><strong>新（Activity Result API）</strong></td><td><code>registerForActivityResult(ActivityResultContracts.GetContent()) { uri -&gt; ... }</code>，用 <code>.launch(...)</code> 触发</td></tr>
+</table>
+</div>
+
+<pre><code>const val PICK_CONTACT_REQUEST = 1
+private fun pickContact() {
+    Intent(Intent.ACTION_PICK, Uri.parse("content://contacts")).also {
+        startActivityForResult(it, PICK_CONTACT_REQUEST)
+    }
+}
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    if (requestCode == PICK_CONTACT_REQUEST && resultCode == Activity.RESULT_OK) {
+        // 使用者选好的联络人在 data 里
+    }
+}</code></pre>
+
+<p>新版的写法更简洁，而且把「启动」和「接收结果」的逻辑写在一起（用一个 lambda），不需要靠一个共用的数字 request code 去配对，也是目前官方建议的做法。</p>
+
+<h2 id="c3-s4">4. Activity Lifecycle <span class="tag">高频</span></h2>
+
+<p>Activity 在它的生命中会经过不同状态，系统用<strong>六个 callback</strong> 通知 activity 状态改变了：<code>onCreate → onStart → onResume → onPause → onStop → onDestroy</code>（还有一个 <code>onRestart</code>，用在从 stopped 状态被叫回来时）。</p>
+
+<figure>
+<svg viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Activity 六个生命周期 callback 与转换条件">
+<defs>
+<marker id="c3-arC" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+
+<rect x="270" y="8" width="160" height="42" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="300" y="34" font-weight="700" font-size="13">onCreate()</text>
+
+<rect x="270" y="80" width="160" height="42" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="305" y="106" font-weight="700" font-size="13">onStart()</text>
+
+<rect x="270" y="152" width="160" height="42" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.6"/>
+<text x="292" y="178" font-weight="700" font-size="13">onResume()</text>
+
+<rect x="270" y="152" width="160" height="42" rx="8" fill="none" stroke="var(--d-accent)" stroke-width="2.4" stroke-dasharray="3 2"/>
+<text x="450" y="178" fill="var(--d-muted)" font-size="11">【Activity Running，使用者看得到、能互动】</text>
+
+<rect x="270" y="238" width="160" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="300" y="264" font-weight="700" font-size="13">onPause()</text>
+
+<rect x="270" y="296" width="160" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="308" y="322" font-weight="700" font-size="13">onStop()</text>
+
+<rect x="8" y="296" width="160" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="26" y="322" font-weight="700" font-size="12.5">onDestroy()</text>
+
+<rect x="8" y="80" width="160" height="42" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)" stroke-width="1.5"/>
+<text x="14" y="106" font-weight="700" font-size="12.5">onRestart()</text>
+
+<line x1="350" y1="50" x2="350" y2="78" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+<line x1="350" y1="122" x2="350" y2="150" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+<line x1="350" y1="194" x2="350" y2="236" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+<text x="360" y="220" font-size="10.5" fill="var(--d-muted)">另一个 activity 进前景</text>
+<line x1="350" y1="280" x2="350" y2="294" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+<text x="360" y="292" font-size="10.5" fill="var(--d-muted)">不再可见</text>
+
+<path d="M270,317 L168,317" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+<text x="180" y="308" font-size="10.5" fill="var(--d-muted)">finish() 或系统回收</text>
+
+<path d="M88,296 L88,122" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+<text x="96" y="220" font-size="10.5" fill="var(--d-muted)">使用者导航<br/>回这个 activity</text>
+<path d="M168,101 L268,101" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arC)"/>
+
+<path d="M480,264 Q560,180 480,163" fill="none" stroke="var(--d-warn)" stroke="#9a6b00" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#c3-arC)"/>
+<text x="490" y="215" font-size="10.5" fill="var(--d-muted)">用户返回，从<br/>onPause 恢复</text>
+
+<rect x="8" y="238" width="160" height="42" rx="8" fill="var(--d-warn-bg)" fill="#fdf6e3" stroke="var(--d-warn)" stroke="#9a6b00" stroke-width="1.5"/>
+<text x="16" y="258" font-size="11" fill="#9a6b00" font-weight="700">App process killed</text>
+<text x="16" y="274" font-size="9.5" fill="var(--d-muted)">高优先权 app 需要记忆体</text>
+<path d="M270,270 L168,270" stroke="#9a6b00" stroke-width="1.4" stroke-dasharray="3 2" marker-end="url(#c3-arC)"/>
+</g>
+</svg>
+<figcaption><b>看这里：</b>中间虚线框起来的 <code>onResume</code> 才是「activity running」的状态。从这里往下（onPause → onStop）是<b>离开</b>的路径，从下面往回到 onResume 是<b>用户导航回来</b>的路径——注意 onPause 状态下系统随时可能因为记忆体不足直接杀掉整个 process，不一定会走到 onStop/onDestroy。</figcaption>
+</figure>
+
+<h3>四个状态的可见度对照</h3>
+<div class="tw">
+<table>
+<tr><th>State</th><th>Resumed</th><th>Paused</th><th>Stopped</th><th>Destroyed</th></tr>
+<tr><td>Visible</td><td>Yes</td><td>Yes（部分）</td><td>No</td><td>No</td></tr>
+<tr><td>User Interaction</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>Code Execution</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>Instance State</td><td>Saved</td><td>Saved</td><td>Saved</td><td><strong>Destroyed</strong></td></tr>
+</table>
+</div>
+
+<h3>六个 Callback 该做什么</h3>
+<div class="tw">
+<table>
+<tr><th>Callback</th><th>什么时候</th><th>该做的事</th></tr>
+<tr><td><strong>onCreate</strong></td><td>建立 activity，<strong>整个生命只做一次</strong></td><td>建 UI（<code>setContent{}</code>）、设 ViewModel/LiveData、注册 observer、检查权限</td></tr>
+<tr><td><strong>onStart</strong></td><td>变成<strong>可见</strong></td><td>注册 BroadcastReceiver、开始动画、载入轻量 UI 资料</td></tr>
+<tr><td><strong>onResume</strong></td><td>进入前景、<strong>可互动</strong>（可能被叫多次）</td><td>恢复 onPause 释放的资源，例如开启相机预览</td></tr>
+<tr><td><strong>onPause</strong></td><td>使用者正在离开，<strong>不一定被销毁</strong>；多窗格下仍可能可见</td><td><strong>快速储存未存的资料</strong>；<strong>动作必须很短</strong>；停掉耗 CPU 的动画/媒体/即时更新</td></tr>
+<tr><td><strong>onStop</strong></td><td><strong>完全不可见</strong></td><td>释放几乎所有资源；做比较重的收尾，例如存进资料库</td></tr>
+<tr><td><strong>onDestroy</strong></td><td><code>finish()</code> / 系统回收 / <strong>转屏</strong></td><td>释放全部资源；<strong>系统可能直接跳过这个 callback</strong></td></tr>
+</table>
+</div>
+
+<div class="box say">
+<span class="lab">💬 答题句 (EN)</span>
+<p>onCreate performs one-time setup such as building the UI and initialising class-scope objects. onStart makes the activity visible. onResume brings it into the foreground and interactive. onPause means the user is leaving — it must execute briefly, and any unsaved data should be committed here, since the system may kill the process right after onPause without ever calling onStop or onDestroy. onStop releases resources once the activity is fully invisible, and onDestroy performs final cleanup, though the system may skip it entirely.</p>
+</div>
+
+<h3>Compose 里怎么监听生命周期</h3>
+<p>Jetpack Compose 没有像传统 View 那样直接对应的 lifecycle callback，改用 <code>LaunchedEffect</code> 搭配 <code>LocalLifecycleOwner</code>：</p>
+<pre><code>@Composable
+fun MyScreen() {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                Log.d("Lifecycle", "onResume - UI Fully Interactive")
+            }
+        })
+    }
+}</code></pre>
+
+<div class="box ok">
+<span class="lab">✅ Slide 59 的四个问题</span>
+<div class="qa"><p class="q">1. onCreate 和 onPause 为什么对 Activity 很重要？</p>
+<p class="a"><code>onCreate</code> 是<b>唯一保证只跑一次</b>的初始化时机，UI 与核心物件都在这里建立；<code>onPause</code> 是<b>最后一个确定还会被呼叫</b>的时机——系统随时可能在 onPause 之后直接杀掉 process 而跳过 onStop/onDestroy，所以任何「不能丢失」的资料都要在 onPause 存好。</p></div>
+<div class="qa"><p class="q">2. 什么情境下 onPause 和 onStop 不会被呼叫？</p>
+<p class="a">当系统<b>直接终止整个 app process</b>时（例如记忆体极度不足、或使用者从「最近使用的 app」清单把它滑掉），系统可能不会照顺序呼叫这些 callback，而是直接结束 process。</p></div>
+<div class="qa"><p class="q">3. 各任务该放在哪个 callback？</p>
+<p class="a">a. 播放背景音乐 → <b>onStart / onResume</b> 开始播放（对应在 onPause/onStop 停止）　b. 存游戏进度 → <b>onPause</b>（快速存）搭配 <b>onStop</b>（更完整的存档）　c. 建立与伺服器的连线 → <b>onStart</b>（对应在 onStop 断线）</p></div>
+<div class="qa"><p class="q">4. Activity 转换状态时，哪两个 callback 适合用来存资料库？</p>
+<p class="a"><b>onPause</b>（存下最关键、不能丢的部分，要快）和 <b>onStop</b>（这里可以做比较完整、稍花时间的资料库写入，因为画面已经完全不可见）。</p></div>
+</div>
+
+<h2 id="c3-s5">5. Configuration Change 与 Compose</h2>
+
+<p><strong>Configuration change</strong>（例如转屏、切换语言、接上外接键盘）会让<strong>目前的 activity 被销毁重建</strong>，正常走一次 <code>onPause → onStop → onDestroy</code>，然后重新 <code>onCreate</code>。这也是 Ch1 提过「记忆体不足会杀 process」那条伏笔在这里的另一半：<strong>转屏和记忆体不足都会导致 activity 走到 onDestroy</strong>，差别只在于转屏之后系统会立刻重建它，而记忆体不足未必会（要等使用者自己导航回来）。</p>
+
+<h2 id="c3-s6">6. 保存与还原 Instance State</h2>
+
+<p><strong>Instance state</strong> = 系统用来还原前一个状态的资料，是一组 <strong>key-value pairs 存在 <code>Bundle</code> 物件里</strong>。系统用它来记住每个 UI component 的状态，例如使用者在文字框里还没送出的输入。</p>
+
+<figure>
+<svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Instance state 保存与还原的往返流程">
+<defs>
+<marker id="c3-arD" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+<path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--d-accent)"/>
+</marker>
+</defs>
+<g font-family="inherit" font-size="12" fill="var(--d-text)">
+<rect x="8" y="70" width="160" height="70" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="24" y="94" font-weight="700" font-size="12.5">① 使用者在打讯息</text>
+<text x="24" y="112" font-size="10.5" fill="var(--d-muted)">"Let us meet at 9am"</text>
+<text x="24" y="128" font-size="10.5" fill="var(--d-muted)">还没送出</text>
+
+<rect x="270" y="10" width="160" height="60" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="286" y="34" font-weight="700" font-size="12">onSaveInstanceState()</text>
+<text x="286" y="52" font-size="10.5" fill="var(--d-muted)">存进 Bundle</text>
+
+<rect x="270" y="150" width="160" height="60" rx="8" fill="var(--d-fill3)" stroke="var(--d-stroke)"/>
+<text x="286" y="174" font-weight="700" font-size="12">onRestoreInstanceState()</text>
+<text x="286" y="192" font-size="10.5" fill="var(--d-muted)">从 Bundle 读回</text>
+
+<rect x="524" y="70" width="160" height="70" rx="8" fill="var(--d-fill2)" stroke="var(--d-accent)" stroke-width="1.5"/>
+<text x="540" y="94" font-weight="700" font-size="12.5">③ 使用者切回来</text>
+<text x="540" y="112" font-size="10.5" fill="var(--d-muted)">看到讯息还在</text>
+<text x="540" y="128" font-size="10.5" fill="var(--d-muted)">草稿没丢失</text>
+
+<path d="M168,90 L268,50" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arD)"/>
+<text x="180" y="55" font-size="10.5" fill="var(--d-muted)">② 例如接电话</text>
+<path d="M430,60 Q460,110 270,175" fill="none" stroke="var(--d-line)" stroke-width="1.2" stroke-dasharray="3 3"/>
+<text x="330" y="128" font-size="9.5" fill="var(--d-muted)">(app 被暂停/销毁期间)</text>
+
+<path d="M430,175 L522,110" fill="none" stroke="var(--d-accent)" stroke-width="1.6" marker-end="url(#c3-arD)"/>
+</g>
+</svg>
+<figcaption><b>看这里：</b>Slide 举的例子是打讯息打到一半、来了一通电话（app 被推到背景甚至被销毁），挂完电话回来<b>草稿还在</b>——靠的就是①存进 Bundle ②（不管中间发生什么）③读回来这一套往返。这跟表格里「Instance State：Destroyed 状态才会真的消失」是同一件事——只要没被 destroy，state 都还留着。</figcaption>
+</figure>
+
+<pre><code>lateinit var textViewMsg: TextView
+
+override fun onSaveInstanceState(outState: Bundle?) {
+    outState?.run { putString(MSG_VIEW_KEY, textViewMsg.text.toString()) }
+    super.onSaveInstanceState(outState)   // 别忘了呼叫父类别，保存 view hierarchy 本身
+}
+
+override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+    textViewMsg.text = savedInstanceState?.getString(MSG_VIEW_KEY)
+}</code></pre>
+
+<div class="box ok">
+<span class="lab">✅ Slide 63 的问题</span>
+<div class="qa"><p class="q">现代装置常见多窗格/多任务，身为开发者该如何处理窗格/任务切换时不丢失重要资讯？</p>
+<p class="a">在 <code>onSaveInstanceState()</code> 里把使用者<b>还没送出、不能重新产生</b>的资料（例如表单填了一半的内容）存进 <code>Bundle</code>，并在 <code>onRestoreInstanceState()</code> 或 <code>onCreate</code> 收到的 <code>savedInstanceState</code> 里读回来，重新填回对应的 UI component。对于比较大或需要跨转屏存活的资料（不只是切换窗格），改用 <b>ViewModel</b>，因为它能在 configuration change 中存活，不需要每次都靠 Bundle 序列化/反序列化。两者搭配：Bundle 处理「系统可能整个 process 被杀」的最坏情况，ViewModel 处理「只是转屏或切分割画面」的一般情况。</p></div>
+</div>
+
+<hr>
+
+<h2 id="c3-mislead">⚠️ Slide 讲得不完整的地方</h2>
+<div class="tw">
+<table>
+<tr><th>位置</th><th>Slide 怎么说</th><th>更完整的理解</th><th>考试怎么办</th></tr>
+<tr><td>S13</td><td>「Explicit intent 用来在自己 app 内启动另一个 activity」</td><td>Explicit 也可以指名<strong>别的 app</strong>的 component（只要你知道它的完整 package + class 名称），只是最常见的用法确实是同一个 app 内，因为你通常不会知道别人 app 内部类别的确切名字</td><td>照 slide 答「用在自己 app 内」即可，这是最常见也最安全的用法</td></tr>
+<tr><td>S46</td><td>System may skip onDestroy，讲得比较简短</td><td>这跟 onPause 是「最后保证会被呼叫」的关系没有讲清楚——onPause 之后系统随时可能直接杀掉整个 process，onStop/onDestroy 都可能被跳过，这正是「该在 onPause 存资料」的真正原因</td><td>答题时把 onPause 和「系统可能跳过后面的 callback」两件事连起来写，比只背 callback 顺序更完整</td></tr>
+</table>
+</div>
+
+<h2 id="c3-terms">术语对照表</h2>
+<div class="tw">
+<table>
+<tr><th>English</th><th>中文</th><th>一句话</th></tr>
+<tr><td>Back stack</td><td>后退堆叠</td><td>LIFO 结构，记录使用者开过的 activity 顺序</td></tr>
+<tr><td>Explicit intent</td><td>明确意图</td><td>指名确切 component，只在自己 app 内搜寻，一定成功</td></tr>
+<tr><td>Implicit intent</td><td>隐含意图</td><td>只宣告动作，交给系统在所有 app 里找，可能失败或多选</td></tr>
+<tr><td>Intent filter</td><td>意图过滤器</td><td>app 向系统宣告自己能处理哪些 implicit intent</td></tr>
+<tr><td>Callback</td><td>回调方法</td><td>系统在特定时机自动呼叫的方法，开发者只需覆写</td></tr>
+<tr><td>Configuration change</td><td>设定变更</td><td>如转屏、换语言，会让 activity 被销毁重建</td></tr>
+<tr><td>Instance state</td><td>实例状态</td><td>存在 Bundle 里的 key-value 资料，用来还原画面</td></tr>
+<tr><td>Bundle</td><td>资料包</td><td>Instance state 实际存放的容器物件</td></tr>
+</table>
+</div>
+
+<h2 id="c3-cheat">Cheat Sheet</h2>
+
+<p><strong>Back stack</strong> — LIFO，新开的推最上面，Back 键弹最上面那个</p>
+<p><strong>Intent 五栏位</strong> — Component Name / Action / Data / Category / Extra</p>
+<p><strong>判断口诀</strong> — 目标在自己 app 里 → Explicit；要借别人的 app → Implicit</p>
+<p><strong>Implicit 找不到</strong> → app crash（除非先 <code>resolveActivity()</code> 检查）；<strong>多个符合</strong> → 弹出选择清单</p>
+<p><strong>六个 Callback</strong> — onCreate（一次性建置）→ onStart（可见）→ onResume（可互动）→ onPause（快速存资料，可能被杀）→ onStop（重的收尾）→ onDestroy（可能被跳过）</p>
+<p><strong>状态表关键</strong> — 只有 Destroyed 状态的 Instance State 才会真的消失，其他都 Saved</p>
+<p><strong>Configuration change</strong>（转屏等）会让 activity 走 onPause→onStop→onDestroy 然后重建</p>
+<p><strong>Instance state</strong> — 存在 Bundle 的 key-value；小资料用 Bundle，跨转屏的大资料用 ViewModel</p>
+
+<hr>
+
+<h2 id="c3-practice">Practice（英文出题，答案含解释）</h2>
+
+<h3>A. Multiple choice (5)</h3>
+<ol>
+<li>Which data structure does Android use to manage the activities a user has opened?<br>(A) Queue　(B) Stack (LIFO)　(C) Linked list　(D) Binary tree</li>
+<li>Which of the following is <b>not</b> carried by an intent?<br>(A) Component name　(B) Action　(C) Layout file　(D) Extra</li>
+<li>MyGOV wants to let a user open Google Maps to navigate to the nearest UTC. This should use:<br>(A) an explicit intent　(B) an implicit intent　(C) a content provider　(D) a broadcast receiver</li>
+<li>In which callback should time-critical data be saved, since the system may kill the process immediately afterwards?<br>(A) onCreate　(B) onStart　(C) onPause　(D) onDestroy</li>
+<li>A configuration change such as screen rotation causes the current activity to:<br>(A) keep running unchanged　(B) be destroyed and recreated　(C) be permanently removed from the back stack　(D) switch into a service</li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — A</span>
+<div class="tw">
+<table>
+<tr><th>№</th><th>Ans</th><th>Explanation</th></tr>
+<tr><td>1</td><td><strong>B</strong></td><td>The back stack is Last In First Out; the most recently opened activity is popped first.<br><span style="color:var(--muted);font-size:.9em">中文：LIFO，最后开的最先被 Back 弹出。</span></td></tr>
+<tr><td>2</td><td><strong>C</strong></td><td>A layout file is a UI resource, not part of an intent. Intents carry component name, action, data, category and extras.<br><span style="color:var(--muted);font-size:.9em">中文：layout 档不是 intent 的一部分。</span></td></tr>
+<tr><td>3</td><td><strong>B</strong></td><td>Navigation needs to be handled by whatever map app is on the user's device — MyGOV doesn't own that component, so it must be an implicit intent.<br><span style="color:var(--muted);font-size:.9em">中文：要借用户装置上的地图 app，只能 implicit。</span></td></tr>
+<tr><td>4</td><td><strong>C</strong></td><td>onPause is the last callback guaranteed to run before the process might be killed; onStop and onDestroy may be skipped entirely.<br><span style="color:var(--muted);font-size:.9em">中文：onPause 后系统随时可能杀掉 process。</span></td></tr>
+<tr><td>5</td><td><strong>B</strong></td><td>Configuration changes destroy and recreate the current activity by default (onPause → onStop → onDestroy, then onCreate again).<br><span style="color:var(--muted);font-size:.9em">中文：转屏会走完销毁再重建的流程。</span></td></tr>
+</table>
+</div>
+</div>
+
+<h3>B. Short answer (3)</h3>
+<ol>
+<li>Explain why an implicit intent can fail at runtime even though the code compiles correctly, and how a developer should guard against this. <em>(5 marks)</em></li>
+<li>MyGOV wants to save a partially-filled licence renewal form if the user is interrupted by a phone call. Explain the mechanism that makes this possible. <em>(5 marks)</em></li>
+<li>Explain the relationship between onPause and the system's ability to skip onStop and onDestroy. <em>(5 marks)</em></li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — B</span>
+<p><strong>B1.</strong> An implicit intent only declares an <b>action</b> to be performed, not a specific component, so at runtime the system must search every installed app's <b>intent filters</b> for a match. Whether a match exists depends entirely on what apps happen to be installed on that particular device — something the compiler cannot check. If no app declares a matching intent filter, calling <code>startActivity()</code> throws an <code>ActivityNotFoundException</code> and the app crashes. To guard against this, the developer should call <code>intent.resolveActivity(packageManager)</code> before starting the activity, and only proceed (or show a fallback message) if it returns a non-null result; for apps targeting API 30 and above, the app must also declare the relevant intents in a <code>&lt;queries&gt;</code> element in the manifest, or the system may hide matching apps from the query regardless.</p>
+<p style="color:var(--muted);font-size:.92em">中文：implicit intent 的成败取决于装置上装了什么 app，跟 code 本身对不对无关，这是回答「为什么会 crash」的关键。</p>
+<hr style="margin:1em 0">
+<p><strong>B2.</strong> When the user is interrupted, the activity moves through <code>onPause</code> and possibly <code>onStop</code>, and MyGOV should save the form's current field values as key-value pairs into a <code>Bundle</code> inside <code>onSaveInstanceState()</code>. If the activity is later destroyed and recreated — whether because the system needed memory or because of a configuration change — the system passes that same <code>Bundle</code> back into <code>onCreate()</code> (or into <code>onRestoreInstanceState()</code>), and the app reads the saved values back into the form fields. This round trip is what lets the draft survive an interruption without the user needing to retype anything, as long as the activity isn't fully destroyed by the user manually finishing it.</p>
+<p style="color:var(--muted);font-size:.92em">中文：关键词是「Bundle 往返」——存进去、可能中间发生任何事、读回来，跟中间到底发生什么无关。</p>
+<hr style="margin:1em 0">
+<p><strong>B3.</strong> <code>onPause</code> is the <b>last callback the system guarantees to call</b> before it might terminate the app's process outright — for example when a higher-priority app urgently needs memory. Once <code>onPause</code> has run, the system is free to kill the process at any point, which means <code>onStop</code> and <code>onDestroy</code> are <b>not guaranteed</b> to run; they are best-effort cleanup steps that happen only if the system has time and reason to call them in an orderly shutdown. This is exactly why any data that absolutely must not be lost has to be committed inside <code>onPause</code> itself, executed quickly, rather than deferred to <code>onStop</code> or <code>onDestroy</code>.</p>
+<p style="color:var(--muted);font-size:.92em">中文：这题的分数在于讲清楚「保证」和「可能被跳过」的因果关系，不是只背出六个 callback 的名字。</p>
+</div>
+
+<h3>C. Application (3)</h3>
+<ol>
+<li>For each MyGOV task, decide explicit or implicit and justify: (a) opening the user's uploaded documents list within MyGOV itself (b) sharing a completed application receipt via WhatsApp (c) opening the phone's default calculator app from a fee-estimation screen.</li>
+<li>A user is filling in the licence renewal form when a low-battery warning notification arrives and briefly covers part of the screen. Trace which lifecycle callbacks fire and why the form data is not lost.</li>
+<li>MyGOV's onPause callback currently makes a slow network call to log analytics. Explain why this is a design mistake and how it should be fixed.</li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — C</span>
+<p><strong>C1.</strong> (a) <b>Explicit</b> — the documents list is MyGOV's own activity, so it can be named directly. (b) <b>Implicit</b> — sharing must be handed off to whichever app the user has installed for messaging (WhatsApp, or a chooser if several apps can handle it); MyGOV does not own WhatsApp's component. (c) <b>Implicit</b> — the calculator is a separate app the device happens to have installed; MyGOV has no explicit reference to its component.</p>
+<hr style="margin:1em 0">
+<p><strong>C2.</strong> A notification banner briefly covering part of the screen does <b>not</b> fully hide the activity, so it only triggers <code>onPause</code> — the activity is still partially visible (multi-window-like state) and is not stopped. Because the system guarantees <code>onPause</code> will run, MyGOV should have already committed the form's field values into a <code>Bundle</code> the moment <code>onPause</code> fires (or continuously, via a ViewModel), so even in the unlikely event the process were killed at this point, the data survives. Once the user dismisses the notification, <code>onResume</code> fires and the form simply continues as before — <code>onStop</code>/<code>onDestroy</code> are not involved at all in this particular interruption.</p>
+<hr style="margin:1em 0">
+<p><strong>C3.</strong> This is a mistake because <code>onPause</code> must execute <b>very briefly</b> — the next activity's <code>onResume</code> cannot proceed until the current activity's <code>onPause</code> finishes, so a slow network call here will make the UI feel frozen or unresponsive during every transition away from this screen, and on unreliable mobile networks the delay could be several seconds. The fix is to move the network logging out of <code>onPause</code> and into a background-safe mechanism that does not block the lifecycle transition — for example dispatching it via a coroutine on a background dispatcher, or queuing it with WorkManager so it runs independently of whether the user is currently switching away from the activity.</p>
+</div>
+
+<h3>D. Thinking (2)</h3>
+<ol>
+<li>Explain why Android gives developers two separate mechanisms — the back stack and onSaveInstanceState/Bundle — instead of just one, when both seem to be about "not losing what the user was doing". <em>(6 marks)</em></li>
+<li>An implicit intent can result in a chooser dialog showing multiple matching apps. Why doesn't this happen with an explicit intent, and what does that reveal about what "resolution" actually means for each type? <em>(6 marks)</em></li>
+</ol>
+
+<div class="box ok">
+<span class="lab">Answers — D</span>
+<p><strong>D1.</strong> They solve different problems at different scopes. The <b>back stack</b> preserves the user's <b>navigation history between whole screens</b> — which activities they opened and in what order — so pressing Back returns them to a previous screen exactly where they left it, without any of the activities on the stack needing to do anything special; the system manages this automatically. <code>onSaveInstanceState</code>/<code>Bundle</code> preserves the <b>internal state within a single activity instance</b> — the exact values a user typed into fields — across an event that destroys and recreates that specific instance, such as a rotation or a low-memory kill. The back stack answers "where was the user in the app", while the Bundle answers "what had the user typed on this one screen"; an app needs both, because surviving on the stack does nothing to protect unsaved field values if that particular activity instance gets destroyed and rebuilt.</p>
+<hr style="margin:1em 0">
+<p><strong>D2.</strong> An explicit intent already names the exact component to start, so "resolution" for it is trivial — the system simply confirms that component exists in the specified app and launches it; there is nothing to choose between, because only one candidate was ever named. An implicit intent, by contrast, only describes an action and lets the system search across every installed app's intent filters, so "resolution" here genuinely means <b>finding candidates</b> — and if more than one app declares a matching filter, the system has no basis for picking one over another, so it defers the decision to the user via a chooser. This reveals that "resolution" means something fundamentally different for the two types: for explicit intents it is a lookup (confirming one known target), while for implicit intents it is a search (discovering possibly many, possibly zero, unknown targets).</p>
+</div>
+
+<h2 id="c3-index">Slide 索引</h2>
+<div class="tw">
+<table>
+<tr><th>本笔记章节</th><th>Slide 页码</th></tr>
+<tr><td>1. Activity ＋ Back Stack ＋ Slide 12 答案</td><td>1–12</td></tr>
+<tr><td>2. Intent 详解 ＋ Slide 38 答案</td><td>13–39</td></tr>
+<tr><td>3. 取得 Activity 回传结果</td><td>40–44</td></tr>
+<tr><td>4. Activity Lifecycle ＋ Slide 59 答案</td><td>45–59</td></tr>
+<tr><td>5. Configuration Change</td><td>55, 62–64</td></tr>
+<tr><td>6. Instance State ＋ Slide 63 答案</td><td>60–63</td></tr>
+<tr><td>Conclusion</td><td>64</td></tr>
+</table>
+</div>
+
+<h2 id="c3-links">与其他章节的连接</h2>
+<div class="tw">
+<table>
+<tr><th>这一章埋的伏笔</th><th>展开在哪一章</th></tr>
+<tr><td>onStop「存进资料库」</td><td><strong>Ch 4.1</strong> — SharedPreferences / SQLite / Room</td></tr>
+<tr><td>ViewModel 能在转屏中存活</td><td><strong>Ch 4.1</strong> — ViewModel / Repository / LiveData 架构</td></tr>
+<tr><td>onStart「连线到伺服器」</td><td><strong>Ch 4.2</strong> — Network、背景执行绪</td></tr>
+<tr><td>Runtime permission 检查</td><td><strong>Ch 5 / Ch 6</strong> — Location、Camera permission</td></tr>
+<tr><td>Fragment 也有自己的一套 lifecycle</td><td><strong>Ch 2.2</strong> — Fragment vs Activity（回头看会更懂）</td></tr>
+</table>
+</div>
+
+<footer>
+<p>这一章最可能的考点，按机率排：① Explicit vs Implicit intent 判断（几乎每年都考，你的考卷 Q2c 就是）　② Activity lifecycle 六个 callback 该做什么　③ Instance state 保存/还原的机制　④ Back stack 的 LIFO 行为　⑤ Intent 携带的五个栏位。</p>
+</footer>
+</section>
+
+</div>
+</body>
+</html>
